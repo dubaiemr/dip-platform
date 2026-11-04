@@ -334,7 +334,11 @@ window.UI = {
       [0, .25, .5].forEach(d => { const o = ctx.createOscillator(), g = ctx.createGain(); o.frequency.value = 880; o.connect(g); g.connect(ctx.destination); g.gain.setValueAtTime(.15, ctx.currentTime + d); g.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + d + .2); o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + .2); });
     } catch (e) {}
   },
-  statusBadge(st, lang = "ar") { const s = DIP.STATUSES[st] || {}; return `<span class="badge" style="--c:${s.color}">${lang === "en" ? s.en : s.ar}</span>`; },
+  statusBadge(st, lang = "ar") {
+    const s = DIP.STATUSES[st] || {};
+    const x = window.I18N && window.I18N[lang] && window.I18N[lang].st[st];
+    return `<span class="badge" style="--c:${s.color}">${lang === "ar" ? s.ar : (x || s.en)}</span>`;
+  },
   modeBanner() {
     if (DIP.Store.mode === "local") {
       return `<div class="mode-banner">${this.ic("alert")} وضع تجريبي محلي — البيانات وهمية وتنحفظ في هذا المتصفح فقط. افتح المنصتين في تبويبين على نفس الجهاز للتجربة، أو اربطها بـ Firebase للتشغيل من أكثر من جهاز.</div>`;

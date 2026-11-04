@@ -30,7 +30,7 @@
       emTypes: ["تهديد أمني", "تجمهر أمام المقر", "حادث داخل المقر", "أخرى"], emDesc: "وصف مختصر", emSend: "إرسال البلاغ الآن",
       emSent: "تم إرسال البلاغ — غرفة العمليات تتابع الحالة الآن", locating: "جاري تحديد الموقع…",
       natT: "يوم وطني قريب", natTxt: (d) => `باقي ${d} يوم على اليوم الوطني لدولتكم. تبون تقدمون طلب تأمين الفعالية من الحين؟`, natBtn: "تقديم طلب تأمين فعالية",
-      logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة"
+      logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة", address: "العنوان", location: "الموقع", deviceLoc: "موقع الجهاز", dp: "شرطة دبي", natEvent: "احتفال اليوم الوطني"
     },
     en: {
       portal: "Diplomatic Missions Portal", portalTag: "Diplomatic Missions & Important Facilities Security Section",
@@ -54,21 +54,46 @@
       emTypes: ["Security threat", "Gathering outside premises", "Incident on premises", "Other"], emDesc: "Short description", emSend: "Send report now",
       emSent: "Report sent — the Command Center is following up now", locating: "Locating…",
       natT: "National day coming up", natTxt: (d) => `${d} days to your National Day. Would you like to request event security now?`, natBtn: "Request event security",
-      logout: "Sign out", lateFor: "Overdue", leftFor: "Time left"
+      logout: "Sign out", lateFor: "Overdue", leftFor: "Time left", address: "Address", location: "Location", deviceLoc: "Device location", dp: "Dubai Police", natEvent: "National Day reception"
     }
   };
+  // اللغات الإضافية من i18n.js
+  const X = window.I18N || { langs: [["ar", "العربية"], ["en", "English"]] };
+  X.langs.forEach(([code]) => {
+    if (T[code] || !X[code]) return;
+    const u = X[code].ui;
+    T[code] = Object.assign({}, T.en, u, { natTxt: d => u.natTxt.replace("{d}", d) });
+  });
+  // ربط كل عنصر (تصنيف/حالة/جهة/خدمة) بمفتاحه للترجمة
+  const KEY = new Map();
+  Object.entries(CATEGORIES).forEach(([k, o]) => KEY.set(o, ["cat", k]));
+  Object.entries(STATUSES).forEach(([k, o]) => KEY.set(o, ["st", k]));
+  Object.entries(DIP.UNITS).forEach(([k, o]) => KEY.set(o, ["unit", k]));
+  SERVICES.forEach(o => KEY.set(o, ["svc", o.id]));
+
   let lang = "ar";
   try { lang = localStorage.getItem("dip-lang") || "ar"; } catch (e) {}
+  if (!T[lang]) lang = "ar";
   const t = k => T[lang][k];
-  const nm = o => (lang === "en" ? o.en : o.ar);
+  const nm = o => {
+    if (lang === "ar") return o.ar;
+    if (lang === "en" || !X[lang]) return o.en;
+    const k = KEY.get(o); if (!k) return o.en;
+    const v = X[lang][k[0]] && X[lang][k[0]][k[1]];
+    return (Array.isArray(v) ? v[0] : v) || o.en;
+  };
+  const svcDesc = s => lang === "ar" ? s.dAr : lang === "en" || !X[lang] ? s.dEn : ((X[lang].svc[s.id] || [])[1] || s.dEn);
+  const flabel = f => lang === "ar" ? f.ar : lang === "en" || !X[lang] ? f.en : (X[lang].f[f.k] || f.en);
 
   function applyLang() {
     document.documentElement.lang = lang;
-    document.documentElement.dir = lang === "en" ? "ltr" : "rtl";
+    document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
     document.querySelectorAll("[data-t]").forEach(el => { el.textContent = t(el.dataset.t); });
     document.querySelectorAll("[data-tp]").forEach(el => { el.placeholder = t(el.dataset.tp); });
-    $("#langLbl").textContent = lang === "en" ? "عربي" : "English";
-    document.title = t("portal") + " | " + (lang === "en" ? "Dubai Police" : "شرطة دبي");
+    const sel = $("#langSel");
+    if (!sel.options.length) sel.innerHTML = X.langs.filter(([c]) => T[c]).map(([c, n]) => `<option value="${c}">${n}</option>`).join("");
+    sel.value = lang;
+    document.title = t("portal") + " | " + t("dp");
   }
 
   /* ---------- الحالة ---------- */
@@ -150,7 +175,7 @@
       <div class="natday"><div class="ico">${UI.ic("calendar")}</div>
         <div class="txt"><b>${t("natT")}</b><div class="muted">${t("natTxt")(days)}</div></div>
         <button class="btn btn-gold" id="natBtn">${t("natBtn")}</button></div>` : "";
-    const nb = $("#natBtn"); if (nb) nb.onclick = () => openForm("s2", { event: lang === "en" ? "National Day reception" : "احتفال اليوم الوطني", date: natDate(m.natDay) });
+    const nb = $("#natBtn"); if (nb) nb.onclick = () => openForm("s2", { event: t("natEvent"), date: natDate(m.natDay) });
 
     // التصنيفات
     const cats = [["all", { ar: t("all"), en: t("all"), icon: "list" }]].concat(Object.entries(CATEGORIES).filter(([k]) => k !== "emergency"));
@@ -166,9 +191,9 @@
       <div class="card svc" data-id="${s.id}" tabindex="0">
         <div class="top"><div class="ico">${UI.ic(CATEGORIES[s.cat].icon)}</div>
           <div><div class="cat">${esc(nm(CATEGORIES[s.cat]))}</div><h3>${esc(nm(s))}</h3></div></div>
-        <p>${esc(lang === "en" ? s.dEn : s.dAr)}</p>
+        <p>${esc(svcDesc(s))}</p>
         <div class="bot"><span>${UI.ic("clock")} ${t("within")}: <b class="num">${s.sla}</b> ${t("hrs")}</span>
-          ${s.permit ? `<span>${UI.ic("qr")} ${t("permit")}</span>` : `<span class="go">${t("req")} ←</span>`}</div>
+          ${s.permit ? `<span>${UI.ic("qr")} ${t("permit")}</span>` : `<span class="go">${t("req")} ${lang === "ar" ? "←" : "→"}</span>`}</div>
       </div>`).join("") || `<div class="empty">—</div>`;
     $("#svcGrid").querySelectorAll(".svc").forEach(c => { c.onclick = () => openForm(c.dataset.id); c.onkeydown = e => { if (e.key === "Enter") openForm(c.dataset.id); }; });
   }
@@ -225,12 +250,12 @@
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
   function fieldHtml(f, pre) {
-    const L = (lang === "en" ? f.en : f.ar) + (f.req ? ' <span class="rq">*</span>' : "");
+    const L = esc(flabel(f)) + (f.req ? ' <span class="rq">*</span>' : "");
     const v = esc(pre[f.k] || "");
     const full = ["textarea", "map"].includes(f.type) ? "full" : "";
     if (f.type === "map") return `<div class="field full"><label>${L}</label><div class="mapbox" id="fMap"></div><div class="map-note" id="mapNote">${t("mapHint")}</div></div>`;
     if (f.type === "textarea") return `<div class="field ${full}"><label>${L}</label><textarea name="${f.k}" ${f.req ? "required" : ""}>${v}</textarea></div>`;
-    if (f.type === "select") return `<div class="field"><label>${L}</label><select name="${f.k}" ${f.req ? "required" : ""}>${f.opts.map(o => `<option value="${esc(o[0])}">${esc(lang === "en" ? o[1] : o[0])}</option>`).join("")}</select></div>`;
+    if (f.type === "select") return `<div class="field"><label>${L}</label><select name="${f.k}" ${f.req ? "required" : ""}>${f.opts.map(o => `<option value="${esc(o[0])}">${esc(lang === "ar" ? o[0] : o[1])}</option>`).join("")}</select></div>`;
     return `<div class="field"><label>${L}</label><input name="${f.k}" type="${f.type}" value="${v}" ${f.req ? "required" : ""} ${f.type === "number" ? 'min="0"' : ""}></div>`;
   }
 
@@ -263,7 +288,7 @@
         });
       }, 60);
     } else if (s.fields.some(f => f.type === "map")) {
-      $("#fMap").outerHTML = `<input name="locText" class="inp" required placeholder="${lang === "en" ? "Address" : "العنوان"}">`;
+      $("#fMap").outerHTML = `<input name="locText" class="inp" required placeholder="${t("address")}">`;
       $("#mapNote").remove();
     }
 
@@ -288,9 +313,9 @@
   function openDetail(id) {
     const r = all.find(x => x.id === id); if (!r) return;
     const s = svc(r.serviceId);
-    const rows = s.fields.filter(f => f.type !== "map").map(f => `<dt>${esc((lang === "en" ? f.en : f.ar).replace(/\s*\(.*\)$/, ""))}</dt><dd>${esc(r.fields[f.k] || "—")}</dd>`).join("")
+    const rows = s.fields.filter(f => f.type !== "map").map(f => `<dt>${esc(flabel(f).replace(/\s*\(.*\)$/, ""))}</dt><dd>${esc(r.fields[f.k] || "—")}</dd>`).join("")
       + (r.urgent ? `<dt>${t("emType")}</dt><dd>${esc(r.fields.type)}</dd><dt>${t("emDesc")}</dt><dd>${esc(r.fields.desc || "—")}</dd>` : "")
-      + (r.location ? `<dt>${lang === "en" ? "Location" : "الموقع"}</dt><dd class="num" dir="ltr" style="text-align:start">${r.location.lat != null ? r.location.lat + ", " + r.location.lng : esc(r.location.label)}</dd>` : "")
+      + (r.location ? `<dt>${t("location")}</dt><dd class="num" dir="ltr" style="text-align:start">${r.location.lat != null ? r.location.lat + ", " + r.location.lng : esc(r.location.label)}</dd>` : "")
       + (r.attachments && r.attachments.length ? `<dt>${t("attach")}</dt><dd>${r.attachments.map(esc).join("\n")}</dd>` : "");
     const hist = r.history.slice().reverse().map(h => `<li style="--c:${STATUSES[h.status].color}"><b>${esc(nm(STATUSES[h.status]))}</b>${h.note ? ` — ${esc(h.note)}` : ""}<div class="t">${fmtDate(h.at)} · ${esc(h.by)}</div></li>`).join("");
     const permit = r.permitCode && ["approved", "inprogress", "completed"].includes(r.status) ? `
@@ -353,7 +378,7 @@
       <div class="modal-f"><button type="button" class="btn btn-o" data-close>${t("cancel")}</button><button class="btn btn-r">${UI.ic("alert")} ${t("emSend")}</button></div></form>`);
     $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal);
     const showLoc = () => { const el = $("#emLoc"); if (el) el.innerHTML = `${UI.ic("map")} <span class="num" dir="ltr">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</span> (${esc(loc.label)})`; };
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { loc = { lat: p.coords.latitude, lng: p.coords.longitude, label: lang === "en" ? "Device location" : "موقع الجهاز" }; showLoc(); }, showLoc, { timeout: 6000 });
+    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { loc = { lat: p.coords.latitude, lng: p.coords.longitude, label: t("deviceLoc") }; showLoc(); }, showLoc, { timeout: 6000 });
     else showLoc();
     $("#emForm").onsubmit = async e => {
       e.preventDefault();
@@ -369,8 +394,8 @@
   };
 
   /* ---------- اللغة ---------- */
-  $("#langBtn").onclick = () => {
-    lang = lang === "ar" ? "en" : "ar"; try { localStorage.setItem("dip-lang", lang); } catch (e) {}
+  $("#langSel").onchange = e => {
+    lang = e.target.value; try { localStorage.setItem("dip-lang", lang); } catch (err) {}
     applyLang(); if (missionId) { renderWho(); renderAll(); } else renderLogin();
   };
 

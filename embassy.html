@@ -39,7 +39,7 @@
       <button data-view="home" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg><span data-t="navHome"></span></button>
       <button data-view="requests"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span data-t="navReq"></span></button>
     </nav>
-    <button class="act" id="langBtn" title="Language"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg><span id="langLbl">English</span></button>
+    <label class="act lang-sel" title="Language"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg><select id="langSel" aria-label="Language"></select></label>
     <div class="who" id="who" hidden></div>
   </div>
 </div>
@@ -99,6 +99,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="assets/js/config.js"></script>
 <script src="assets/js/data.js"></script>
+<script src="assets/js/i18n.js"></script>
 <script src="assets/js/embassy.js"></script>
 </body>
 </html>
