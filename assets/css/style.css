@@ -175,17 +175,16 @@ main { max-width: 1280px; margin: 0 auto; padding: 26px 24px 60px; }
 .map-note { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
 @media (max-width: 900px) {
-  /* الترويسة في الجوال: الشعارات في سطر، ومسمى الإدارة تحتها */
-  .brandbar .in { padding: 8px 14px 6px; flex-wrap: wrap; row-gap: 4px; gap: 10px; }
-  .brand-right { display: contents; }
-  .brand-right .dp { order: 1; height: 38px; }
-  .brand-right .sep { order: 2; height: 32px; }
-  .brand-right .acis { order: 3; height: 44px; }
-  .brand-left { order: 4; margin-inline-start: auto; }
-  .brand-left img { height: 38px; }
-  .brand-right .dept { order: 5; flex-basis: 100%; text-align: center; border-top: 1px solid var(--line); padding-top: 5px; }
-  .brand-right .dept b { font-size: 13px; }
-  .brand-right .dept small { font-size: 8.5px; }
+  /* الترويسة في الجوال: الشعارات واسم الإدارة في سطر واحد */
+  .brandbar .in { padding: 8px 10px; gap: 8px; }
+  .brand-right { gap: 7px; }
+  .brand-right .dp { height: 28px; }
+  .brand-right .sep { height: 26px; }
+  .brand-right .acis { height: 33px; }
+  .brand-left img { height: 28px; }
+  .brand-right .dept { max-width: 104px; line-height: 1.25; }
+  .brand-right .dept b { font-size: 10.5px; }
+  .brand-right .dept small { font-size: 5.6px; letter-spacing: 0; margin-top: 2px; }
   .appbar .in { padding: 0 14px; gap: 8px; height: auto; min-height: 54px; flex-wrap: wrap; padding-block: 8px; }
   .appbar nav { order: 3; width: 100%; overflow-x: auto; margin: 0; }
   .appbar .title { flex-direction: column; align-items: flex-start; gap: 3px; white-space: normal; }
