@@ -29,7 +29,7 @@
   function enter(name) {
     officer = name;
     $("#loginView").hidden = true; $("#app").hidden = false; $("#nav").hidden = false; $("#who").hidden = false;
-    $("#who").innerHTML = `${UI.ic("user")}<span>${esc(name)}</span>
+    $("#who").innerHTML = `<button class="act notif" id="notifBtn"></button>${UI.ic("user")}<span>${esc(name)}</span>
       <button class="act" id="seedBtn" title="${Store.mode === "local" ? "إعادة البيانات التجريبية" : "إضافة بيانات تجريبية"}">${UI.ic("refresh")}</button>
       <button class="act" id="logoutBtn" title="خروج">${UI.ic("logout")}</button>`;
     $("#logoutBtn").onclick = async () => { try { sessionStorage.removeItem("dip-officer"); } catch (e) {} await Store.signOut(); location.reload(); };
@@ -38,6 +38,7 @@
       if (Store.mode === "local") await Store.reset(); else await Store.seed();
       UI.toast("تم تحميل البيانات التجريبية");
     };
+    Alerts.init();
     Store.subscribe(list => {
       all = list.slice().sort((a, b) => (b.urgent && b.status !== "completed") - (a.urgent && a.status !== "completed") || b.createdAt - a.createdAt);
       detectNew();
@@ -63,10 +64,70 @@
       all.filter(r => !known.has(r.id)).forEach(r => {
         if (r.urgent) { UI.beep(); UI.toast(`بلاغ طارئ من ${r.missionName}`, "err"); }
         else UI.toast(`طلب جديد: ${svc(r.serviceId).ar} — ${r.missionName}`);
+        Alerts.notify(r);
       });
     }
     known = ids;
   }
+
+  /* ---------- التنبيهات: إشعارات + رقم على أيقونة التطبيق + تمييز الطوارئ ---------- */
+  const Alerts = {
+    reg: null,
+    async init() {
+      if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+        try { this.reg = await navigator.serviceWorker.register("sw.js"); } catch (e) {}
+        navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.open) openDetail(e.data.open); });
+      }
+      const m = location.hash.match(/req=([^&]+)/); if (m) setTimeout(() => openDetail(decodeURIComponent(m[1])), 1500);
+      this.button();
+    },
+    supported() { return "Notification" in window; },
+    button() {
+      const b = $("#notifBtn"); if (!b) return;
+      if (!this.supported()) { b.hidden = true; return; }
+      const on = Notification.permission === "granted";
+      b.classList.toggle("on", on);
+      b.title = on ? "التنبيهات مفعّلة" : "تفعيل التنبيهات";
+      b.innerHTML = UI.ic("bell") + `<span>${on ? "التنبيهات مفعّلة" : "تفعيل التنبيهات"}</span>`;
+      b.onclick = async () => {
+        if (Notification.permission === "granted") { this.test(); return; }
+        const p = await Notification.requestPermission();
+        if (p === "granted") { UI.toast("تم تفعيل التنبيهات"); this.test(); }
+        else if (/iPhone|iPad/.test(navigator.userAgent) && !navigator.standalone) UI.toast("في الآيفون: أضف اللوحة للشاشة الرئيسية أولاً، ثم فعّل التنبيهات من داخلها", "warn");
+        else UI.toast("ما تم السماح بالتنبيهات — فعّلها من إعدادات المتصفح", "warn");
+        this.button();
+      };
+    },
+    async show(title, opts) {
+      if (!this.supported() || Notification.permission !== "granted") return;
+      try {
+        const reg = this.reg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration());
+        if (reg) await reg.showNotification(title, opts); else new Notification(title, opts);
+      } catch (e) { try { new Notification(title, opts); } catch (e2) {} }
+    },
+    notify(r) {
+      const s = svc(r.serviceId);
+      this.show(r.urgent ? "🚨 بلاغ طارئ — " + r.missionName : "📥 طلب جديد — " + s.ar, {
+        body: r.urgent ? `${r.fields.type || ""}${r.fields.desc ? " — " + r.fields.desc : ""}` : `${r.missionName}\n${r.ref}`,
+        tag: r.id, data: { id: r.id, page: "police.html" }, renotify: true, requireInteraction: !!r.urgent, dir: "rtl", lang: "ar",
+        icon: r.urgent ? "assets/img/icons/police-sos-192.png" : "assets/img/icons/police-192.png",
+        badge: "assets/img/icons/badge-96.png", vibrate: r.urgent ? [400, 150, 400, 150, 400] : [200]
+      });
+    },
+    test() { this.show("✅ التنبيهات شغالة", { body: "بيوصلك إشعار مع كل طلب جديد، وإشعار مميز للبلاغات الطارئة.", tag: "test", icon: "assets/img/icons/police-192.png", badge: "assets/img/icons/badge-96.png" }); },
+    // رقم على أيقونة التطبيق + عنوان وأيقونة التبويب
+    update() {
+      const nNew = all.filter(r => r.status === "new").length;
+      const sos = all.filter(r => r.urgent && !["completed", "rejected"].includes(r.status)).length;
+      const n = nNew + all.filter(r => r.urgent && r.status === "inprogress").length;
+      try { if (navigator.setAppBadge) { if (n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } } catch (e) {}
+      document.title = (sos ? `🚨 (${sos}) بلاغ طارئ | ` : nNew ? `(${nNew}) ` : "") + "لوحة استلام الطلبات | شرطة دبي";
+      const fav = document.querySelector('link[rel="icon"]');
+      if (fav) fav.href = sos ? "assets/img/icons/police-sos-64.png" : "assets/img/icons/police-64.png";
+      const tc = document.querySelector('meta[name="theme-color"]');
+      if (tc) tc.content = sos ? "#c53030" : "#ffffff";
+    }
+  };
 
   /* ---------- التنقل ---------- */
   function show(v) {
@@ -82,6 +143,7 @@
     const nNew = all.filter(r => r.status === "new").length;
     $("#newCnt").textContent = nNew; $("#newCnt").classList.toggle("show", nNew > 0);
     renderSos();
+    Alerts.update();
     if (view === "dash") renderDash();
     if (view === "reqs") renderRows();
     if (view === "map" && bigMap) renderMap();

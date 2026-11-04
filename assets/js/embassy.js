@@ -30,7 +30,7 @@
       emTypes: ["تهديد أمني", "تجمهر أمام المقر", "حادث داخل المقر", "أخرى"], emDesc: "وصف مختصر", emSend: "إرسال البلاغ الآن",
       emSent: "تم إرسال البلاغ — غرفة العمليات تتابع الحالة الآن", locating: "جاري تحديد الموقع…",
       natT: "يوم وطني قريب", natTxt: (d) => `باقي ${d} يوم على اليوم الوطني لدولتكم. تبون تقدمون طلب تأمين الفعالية من الحين؟`, natBtn: "تقديم طلب تأمين فعالية",
-      logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة", address: "العنوان", location: "الموقع", deviceLoc: "موقع الجهاز", dp: "شرطة دبي", natEvent: "احتفال اليوم الوطني"
+      logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة", notifOff: "تفعيل التنبيهات", notifOn: "التنبيهات مفعّلة", notifTestT: "✅ التنبيهات شغالة", notifTestB: "بيوصلكم إشعار مع كل تحديث على طلباتكم.", notifDenied: "ما تم السماح بالتنبيهات — فعّلوها من إعدادات المتصفح", notifIos: "في الآيفون: أضيفوا البوابة للشاشة الرئيسية أولاً ثم فعّلوا التنبيهات من داخلها", updT: "تحديث على طلبكم", address: "العنوان", location: "الموقع", deviceLoc: "موقع الجهاز", dp: "شرطة دبي", natEvent: "احتفال اليوم الوطني"
     },
     en: {
       portal: "Diplomatic Missions Portal", portalTag: "Diplomatic Missions & Important Facilities Security Section",
@@ -54,7 +54,7 @@
       emTypes: ["Security threat", "Gathering outside premises", "Incident on premises", "Other"], emDesc: "Short description", emSend: "Send report now",
       emSent: "Report sent — the Command Center is following up now", locating: "Locating…",
       natT: "National day coming up", natTxt: (d) => `${d} days to your National Day. Would you like to request event security now?`, natBtn: "Request event security",
-      logout: "Sign out", lateFor: "Overdue", leftFor: "Time left", address: "Address", location: "Location", deviceLoc: "Device location", dp: "Dubai Police", natEvent: "National Day reception"
+      logout: "Sign out", lateFor: "Overdue", leftFor: "Time left", notifOff: "Enable notifications", notifOn: "Notifications on", notifTestT: "✅ Notifications are on", notifTestB: "You will be notified of every update to your requests.", notifDenied: "Notifications were not allowed — enable them in browser settings", notifIos: "On iPhone: add the portal to your Home Screen first, then enable notifications from there", updT: "Update on your request", address: "Address", location: "Location", deviceLoc: "Device location", dp: "Dubai Police", natEvent: "National Day reception"
     }
   };
   // اللغات الإضافية من i18n.js
@@ -131,15 +131,19 @@
     $("#loginView").hidden = true; $("#app").hidden = false; $("#nav").hidden = false; $("#who").hidden = false;
     renderWho();
     if (unsub) unsub();
+    EAlerts.init();
+    let firstLoad = true;
     unsub = Store.subscribe(list => {
       all = list.filter(r => r.missionId === missionId).sort((a, b) => b.createdAt - a.createdAt);
+      if (firstLoad) { EAlerts.firstRun(); firstLoad = false; }
       notifyChanges();
       renderAll();
     }, missionId);
   }
   function renderWho() {
-    $("#who").innerHTML = `${UI.ic("user")}<span>${esc(nm(MISSIONS[missionId]))}</span>
+    $("#who").innerHTML = `<button class="act notif" id="notifBtn"></button>${UI.ic("user")}<span>${esc(nm(MISSIONS[missionId]))}</span>
       <button class="act" id="logoutBtn" title="${t("logout")}">${UI.ic("logout")}</button>`;
+    EAlerts.button();
     $("#logoutBtn").onclick = async () => { try { sessionStorage.removeItem("dip-mission"); } catch (e) {} await Store.signOut(); location.reload(); };
   }
   // تنبيه عند تغيّر حالة طلب من جهة الشرطة
@@ -148,10 +152,77 @@
     all.forEach(r => {
       if (!first && lastStatuses[r.id] && lastStatuses[r.id] !== r.status) {
         UI.toast(`${r.ref}: ${nm(STATUSES[r.status])}`);
+        EAlerts.notify(r);
       }
       lastStatuses[r.id] = r.status;
     });
+    EAlerts.update();
   }
+
+  /* ---------- تنبيهات البعثة: إشعار عند رد الشرطة + رقم على أيقونة التطبيق ---------- */
+  const SEEN_KEY = () => "dip-seen-" + missionId;
+  const EAlerts = {
+    reg: null,
+    async init() {
+      if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+        try { this.reg = await navigator.serviceWorker.register("sw.js"); } catch (e) {}
+        navigator.serviceWorker.addEventListener("message", e => { if (e.data && e.data.open) { show("requests"); openDetail(e.data.open); } });
+      }
+      const m = location.hash.match(/req=([^&]+)/); if (m) setTimeout(() => { show("requests"); openDetail(decodeURIComponent(m[1])); }, 1500);
+      this.button();
+    },
+    ok() { return "Notification" in window; },
+    button() {
+      const b = $("#notifBtn"); if (!b) return;
+      if (!this.ok()) { b.hidden = true; return; }
+      const on = Notification.permission === "granted";
+      b.classList.toggle("on", on);
+      b.innerHTML = UI.ic("bell") + `<span>${on ? t("notifOn") : t("notifOff")}</span>`;
+      b.onclick = async () => {
+        if (Notification.permission === "granted") { this.test(); return; }
+        const p = await Notification.requestPermission();
+        if (p === "granted") this.test();
+        else UI.toast(/iPhone|iPad/.test(navigator.userAgent) && !navigator.standalone ? t("notifIos") : t("notifDenied"), "warn");
+        this.button();
+      };
+    },
+    async show(title, opts) {
+      if (!this.ok() || Notification.permission !== "granted") return;
+      try {
+        const reg = this.reg || (navigator.serviceWorker && await navigator.serviceWorker.getRegistration());
+        if (reg) await reg.showNotification(title, opts); else new Notification(title, opts);
+      } catch (e) { try { new Notification(title, opts); } catch (e2) {} }
+    },
+    notify(r) {
+      const st = nm(STATUSES[r.status]);
+      const extra = r.status === "rejected" && r.rejectReason ? " — " + r.rejectReason : (r.permitCode && r.status === "approved" ? " — " + t("permitT") : "");
+      this.show(`${t("updT")}: ${st}`, {
+        body: `${nm(svc(r.serviceId))}\n${r.ref}${extra}`, tag: r.id, data: { id: r.id, page: "embassy.html" }, renotify: true,
+        dir: lang === "ar" ? "rtl" : "ltr", lang, icon: "assets/img/icons/embassy-192.png", badge: "assets/img/icons/badge-96.png", vibrate: [200, 100, 200]
+      });
+    },
+    test() { this.show(t("notifTestT"), { body: t("notifTestB"), tag: "test", icon: "assets/img/icons/embassy-192.png", badge: "assets/img/icons/badge-96.png" }); },
+    // الرقم على الأيقونة = طلبات حدّثتها الشرطة ولم تُفتح بعد
+    unseen() {
+      let seen = {}; try { seen = JSON.parse(localStorage.getItem(SEEN_KEY()) || "{}"); } catch (e) {}
+      return all.filter(r => r.history.length > 1 && (seen[r.id] || 0) < r.updatedAt);
+    },
+    markSeen(id) {
+      let seen = {}; try { seen = JSON.parse(localStorage.getItem(SEEN_KEY()) || "{}"); } catch (e) {}
+      const r = all.find(x => x.id === id); if (!r) return;
+      seen[id] = r.updatedAt; try { localStorage.setItem(SEEN_KEY(), JSON.stringify(seen)); } catch (e) {}
+      this.update();
+    },
+    firstRun() {
+      // أول دخول: اعتبر كل الطلبات الحالية مقروءة حتى لا يظهر رقم قديم
+      try { if (!localStorage.getItem(SEEN_KEY())) { const s = {}; all.forEach(r => s[r.id] = r.updatedAt); localStorage.setItem(SEEN_KEY(), JSON.stringify(s)); } } catch (e) {}
+    },
+    update() {
+      const n = this.unseen().length;
+      try { if (navigator.setAppBadge) { if (n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } } catch (e) {}
+      const c = $("#updCnt"); if (c) { c.textContent = n; c.classList.toggle("show", n > 0); }
+    }
+  };
 
   /* ---------- العرض ---------- */
   function renderAll() { renderHome(); renderRequests(); }
@@ -312,6 +383,7 @@
 
   function openDetail(id) {
     const r = all.find(x => x.id === id); if (!r) return;
+    EAlerts.markSeen(id);
     const s = svc(r.serviceId);
     const rows = s.fields.filter(f => f.type !== "map").map(f => `<dt>${esc(flabel(f).replace(/\s*\(.*\)$/, ""))}</dt><dd>${esc(r.fields[f.k] || "—")}</dd>`).join("")
       + (r.urgent ? `<dt>${t("emType")}</dt><dd>${esc(r.fields.type)}</dd><dt>${t("emDesc")}</dt><dd>${esc(r.fields.desc || "—")}</dd>` : "")

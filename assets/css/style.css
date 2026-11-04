@@ -207,3 +207,12 @@ html { background: #fff; }
 @media (display-mode: standalone) {
   .brandbar { padding-top: 14px; }
 }
+
+/* عدّاد في القائمة + زر التنبيهات (مشترك) */
+.appbar nav .cnt { background: #c53030; color: #fff; font-family: var(--num); font-size: 11px; min-width: 20px; height: 20px; border-radius: 99px; display: none; place-items: center; padding: 0 6px; }
+.appbar nav .cnt.show { display: inline-grid; }
+.appbar .act.notif { border: 1px solid rgba(255,255,255,.35); border-radius: 99px; padding: 5px 12px; font-size: 12.5px; }
+.appbar .act.notif.on { border-color: transparent; background: rgba(255,255,255,.12); }
+.appbar .act.notif:not(.on) { background: var(--gold); color: #1d2a24; border-color: var(--gold); animation: nudge 2s infinite; }
+@keyframes nudge { 50% { box-shadow: 0 0 0 5px rgba(207,165,98,.35); } }
+@media (max-width: 900px) { .appbar .act.notif span { display: none; } .appbar .who { flex-wrap: wrap; } }

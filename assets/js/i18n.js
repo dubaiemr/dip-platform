@@ -31,6 +31,7 @@ window.I18N = {
       emTypes: ["安全威胁", "馆舍外聚集", "馆舍内事件", "其他"], emDesc: "简要描述", emSend: "立即发送",
       emSent: "报告已发送 — 指挥控制中心正在跟进", locating: "正在定位…",
       natT: "国庆日临近", natTxt: "距贵国国庆日还有 {d} 天。是否现在申请活动安保？", natBtn: "申请活动安保",
+      notifOff: "开启通知", notifOn: "通知已开启", notifTestT: "✅ 通知已开启", notifTestB: "您的申请每次更新都会收到通知。", notifDenied: "未允许通知 — 请在浏览器设置中开启", notifIos: "iPhone：请先将门户添加到主屏幕，再从主屏幕开启通知", updT: "您的申请有更新",
       logout: "退出", address: "地址", location: "位置", deviceLoc: "设备位置", dp: "迪拜警察", natEvent: "国庆日招待会"
     },
     cat: { security: "安保服务", traffic: "交通服务", airport: "机场礼宾", prison: "中央监狱服务", emergency: "紧急报告" },
@@ -77,6 +78,7 @@ window.I18N = {
       emTypes: ["Menace sécuritaire", "Rassemblement devant les locaux", "Incident dans les locaux", "Autre"], emDesc: "Brève description", emSend: "Envoyer maintenant",
       emSent: "Signalement envoyé — le centre de commandement prend en charge", locating: "Localisation…",
       natT: "Fête nationale à venir", natTxt: "Plus que {d} jours avant votre fête nationale. Souhaitez-vous demander dès maintenant la sécurité de l'événement ?", natBtn: "Demander la sécurité de l'événement",
+      notifOff: "Activer les notifications", notifOn: "Notifications activées", notifTestT: "✅ Notifications activées", notifTestB: "Vous serez averti de chaque mise à jour de vos demandes.", notifDenied: "Notifications non autorisées — activez-les dans les réglages du navigateur", notifIos: "Sur iPhone : ajoutez d'abord le portail à l'écran d'accueil, puis activez les notifications", updT: "Mise à jour de votre demande",
       logout: "Déconnexion", address: "Adresse", location: "Emplacement", deviceLoc: "Position de l'appareil", dp: "Police de Dubaï", natEvent: "Réception de la fête nationale"
     },
     cat: { security: "Services de sécurité", traffic: "Services de circulation", airport: "Protocole aéroport", prison: "Prison centrale", emergency: "Signalements d'urgence" },
@@ -123,6 +125,7 @@ window.I18N = {
       emTypes: ["Amenaza a la seguridad", "Concentración frente a la sede", "Incidente en la sede", "Otro"], emDesc: "Descripción breve", emSend: "Enviar ahora",
       emSent: "Aviso enviado — el Centro de Mando lo está atendiendo", locating: "Localizando…",
       natT: "Se acerca el Día Nacional", natTxt: "Faltan {d} días para su Día Nacional. ¿Desea solicitar ya la seguridad del evento?", natBtn: "Solicitar seguridad del evento",
+      notifOff: "Activar notificaciones", notifOn: "Notificaciones activadas", notifTestT: "✅ Notificaciones activadas", notifTestB: "Recibirá un aviso con cada actualización de sus solicitudes.", notifDenied: "No se permitieron las notificaciones — actívelas en los ajustes del navegador", notifIos: "En iPhone: añada primero el portal a la pantalla de inicio y active allí las notificaciones", updT: "Actualización de su solicitud",
       logout: "Salir", address: "Dirección", location: "Ubicación", deviceLoc: "Ubicación del dispositivo", dp: "Policía de Dubái", natEvent: "Recepción del Día Nacional"
     },
     cat: { security: "Servicios de seguridad", traffic: "Servicios de tráfico", airport: "Protocolo del aeropuerto", prison: "Prisión central", emergency: "Avisos de emergencia" },
@@ -169,6 +172,7 @@ window.I18N = {
       emTypes: ["Угроза безопасности", "Скопление людей у здания", "Происшествие в здании", "Другое"], emDesc: "Краткое описание", emSend: "Отправить сейчас",
       emSent: "Сообщение отправлено — командный центр принимает меры", locating: "Определение местоположения…",
       natT: "Скоро национальный праздник", natTxt: "До вашего национального дня осталось {d} дн. Подать заявку на обеспечение безопасности мероприятия сейчас?", natBtn: "Заявка на безопасность мероприятия",
+      notifOff: "Включить уведомления", notifOn: "Уведомления включены", notifTestT: "✅ Уведомления включены", notifTestB: "Вы будете получать уведомление о каждом обновлении заявок.", notifDenied: "Уведомления не разрешены — включите их в настройках браузера", notifIos: "На iPhone: сначала добавьте портал на экран «Домой», затем включите уведомления", updT: "Обновление по вашей заявке",
       logout: "Выйти", address: "Адрес", location: "Местоположение", deviceLoc: "Местоположение устройства", dp: "Полиция Дубая", natEvent: "Приём по случаю национального дня"
     },
     cat: { security: "Услуги безопасности", traffic: "Дорожные услуги", airport: "Протокол аэропорта", prison: "Центральная тюрьма", emergency: "Экстренные сообщения" },
@@ -215,6 +219,7 @@ window.I18N = {
       emTypes: ["सुरक्षा ख़तरा", "परिसर के बाहर भीड़", "परिसर में घटना", "अन्य"], emDesc: "संक्षिप्त विवरण", emSend: "अभी भेजें",
       emSent: "रिपोर्ट भेजी गई — कमांड सेंटर कार्रवाई कर रहा है", locating: "स्थान खोजा जा रहा है…",
       natT: "राष्ट्रीय दिवस निकट है", natTxt: "आपके राष्ट्रीय दिवस में {d} दिन शेष हैं। क्या आप अभी कार्यक्रम सुरक्षा का अनुरोध करना चाहेंगे?", natBtn: "कार्यक्रम सुरक्षा का अनुरोध",
+      notifOff: "सूचनाएँ चालू करें", notifOn: "सूचनाएँ चालू हैं", notifTestT: "✅ सूचनाएँ चालू हैं", notifTestB: "आपके अनुरोधों के हर अपडेट पर आपको सूचना मिलेगी।", notifDenied: "सूचनाओं की अनुमति नहीं दी गई — ब्राउज़र सेटिंग्स में चालू करें", notifIos: "iPhone पर: पहले पोर्टल को होम स्क्रीन पर जोड़ें, फिर वहाँ से सूचनाएँ चालू करें", updT: "आपके अनुरोध पर अपडेट",
       logout: "लॉग आउट", address: "पता", location: "स्थान", deviceLoc: "डिवाइस का स्थान", dp: "दुबई पुलिस", natEvent: "राष्ट्रीय दिवस समारोह"
     },
     cat: { security: "सुरक्षा सेवाएँ", traffic: "यातायात सेवाएँ", airport: "हवाई अड्डा प्रोटोकॉल", prison: "केंद्रीय जेल सेवाएँ", emergency: "आपातकालीन रिपोर्ट" },
@@ -261,6 +266,7 @@ window.I18N = {
       emTypes: ["Ameaça à segurança", "Aglomeração em frente à sede", "Incidente na sede", "Outro"], emDesc: "Breve descrição", emSend: "Enviar agora",
       emSent: "Comunicação enviada — o Centro de Comando está acompanhando", locating: "Localizando…",
       natT: "Dia Nacional se aproxima", natTxt: "Faltam {d} dias para o seu Dia Nacional. Deseja solicitar já a segurança do evento?", natBtn: "Solicitar segurança do evento",
+      notifOff: "Ativar notificações", notifOn: "Notificações ativadas", notifTestT: "✅ Notificações ativadas", notifTestB: "Você será avisado a cada atualização dos seus pedidos.", notifDenied: "As notificações não foram permitidas — ative-as nas configurações do navegador", notifIos: "No iPhone: adicione primeiro o portal à Tela de Início e ative as notificações a partir dela", updT: "Atualização do seu pedido",
       logout: "Sair", address: "Endereço", location: "Localização", deviceLoc: "Localização do dispositivo", dp: "Polícia de Dubai", natEvent: "Recepção do Dia Nacional"
     },
     cat: { security: "Serviços de segurança", traffic: "Serviços de trânsito", airport: "Protocolo do aeroporto", prison: "Prisão central", emergency: "Ocorrências de emergência" },
@@ -307,6 +313,7 @@ window.I18N = {
       emTypes: ["Sicherheitsbedrohung", "Menschenansammlung vor dem Gebäude", "Vorfall im Gebäude", "Sonstiges"], emDesc: "Kurze Beschreibung", emSend: "Jetzt senden",
       emSent: "Meldung gesendet — die Einsatzzentrale kümmert sich", locating: "Standort wird ermittelt…",
       natT: "Nationalfeiertag naht", natTxt: "Noch {d} Tage bis zu Ihrem Nationalfeiertag. Möchten Sie die Sicherheit der Veranstaltung jetzt beantragen?", natBtn: "Veranstaltungssicherheit beantragen",
+      notifOff: "Benachrichtigungen aktivieren", notifOn: "Benachrichtigungen an", notifTestT: "✅ Benachrichtigungen aktiv", notifTestB: "Sie werden über jede Änderung Ihrer Anträge benachrichtigt.", notifDenied: "Benachrichtigungen nicht erlaubt — bitte in den Browsereinstellungen aktivieren", notifIos: "Auf dem iPhone: Portal zuerst zum Home-Bildschirm hinzufügen, dann dort Benachrichtigungen aktivieren", updT: "Neuigkeit zu Ihrem Antrag",
       logout: "Abmelden", address: "Adresse", location: "Standort", deviceLoc: "Gerätestandort", dp: "Polizei Dubai", natEvent: "Empfang zum Nationalfeiertag"
     },
     cat: { security: "Sicherheitsdienste", traffic: "Verkehrsdienste", airport: "Flughafenprotokoll", prison: "Zentralgefängnis", emergency: "Notfallmeldungen" },
@@ -353,6 +360,7 @@ window.I18N = {
       emTypes: ["治安上の脅威", "館外での群衆", "館内での事案", "その他"], emDesc: "概要", emSend: "今すぐ送信",
       emSent: "通報を送信しました — 指令センターが対応中です", locating: "位置を取得中…",
       natT: "建国記念日が近づいています", natTxt: "貴国の建国記念日まであと{d}日です。今すぐイベント警備を申請しますか？", natBtn: "イベント警備を申請",
+      notifOff: "通知をオンにする", notifOn: "通知オン", notifTestT: "✅ 通知がオンになりました", notifTestB: "申請に更新があるたびに通知が届きます。", notifDenied: "通知が許可されていません — ブラウザの設定で許可してください", notifIos: "iPhoneの場合：先にポータルをホーム画面に追加し、そこから通知をオンにしてください", updT: "申請に更新があります",
       logout: "ログアウト", address: "住所", location: "場所", deviceLoc: "端末の位置", dp: "ドバイ警察", natEvent: "建国記念日レセプション"
     },
     cat: { security: "警備サービス", traffic: "交通サービス", airport: "空港儀典", prison: "中央刑務所", emergency: "緊急通報" },
