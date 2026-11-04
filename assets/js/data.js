@@ -6,7 +6,7 @@
 
   /* ---------- الجهات المختصة ---------- */
   const UNITS = {
-    dip:    { ar: "قسم أمن الهيئات الدبلوماسية والمنشآت الهامة", en: "Diplomatic Missions Security Section" },
+    dip:    { ar: "قسم أمن الهيئات الدبلوماسية والمنشآت الهامة", en: "Diplomatic Missions & Important Facilities Security Section" },
     traffic:{ ar: "الإدارة العامة للمرور", en: "General Department of Traffic" },
     airport:{ ar: "تشريفات المطار", en: "Airport Protocol" },
     prison: { ar: "الإدارة العامة للمؤسسات العقابية والإصلاحية", en: "Punitive & Correctional Establishments" },

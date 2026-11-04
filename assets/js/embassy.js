@@ -9,7 +9,7 @@
   /* ---------- الترجمة ---------- */
   const T = {
     ar: {
-      portal: "بوابة الهيئات الدبلوماسية", portalTag: "المنصة الإلكترونية الموحدة",
+      portal: "بوابة الهيئات الدبلوماسية", portalTag: "قسم أمن الهيئات الدبلوماسية والمنشآت الهامة",
       navHome: "الخدمات", navReq: "طلباتي",
       loginTitle: "تسجيل دخول البعثة", loginSub: "منصة موحدة لخدمات شرطة دبي الأمنية والمرورية والإدارية للهيئات الدبلوماسية.",
       mission: "البعثة الدبلوماسية", email: "البريد الإلكتروني", password: "كلمة المرور", login: "دخول",
@@ -33,7 +33,7 @@
       logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة"
     },
     en: {
-      portal: "Diplomatic Missions Portal", portalTag: "Unified e-Services Platform",
+      portal: "Diplomatic Missions Portal", portalTag: "Diplomatic Missions & Important Facilities Security Section",
       navHome: "Services", navReq: "My requests",
       loginTitle: "Mission sign-in", loginSub: "One platform for Dubai Police security, traffic and administrative services to diplomatic missions.",
       mission: "Diplomatic mission", email: "Email", password: "Password", login: "Sign in",
