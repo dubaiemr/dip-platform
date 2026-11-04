@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة استلام طلبات الهيئات الدبلوماسية | شرطة دبي</title>
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/police.css">
+</head>
+<body>
+
+<header class="brandbar">
+  <div class="in">
+    <div class="brand-right">
+      <img class="dp" src="assets/img/logo-dubai-police.png" alt="شرطة دبي">
+      <span class="sep"></span>
+      <img class="acis" src="assets/img/logo-acis.png" alt="ACIS">
+      <div class="dept"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div>
+    </div>
+    <div class="brand-left"><img src="assets/img/logo-gov-dubai.png" alt="حكومة دبي"></div>
+  </div>
+</header>
+
+<div class="appbar">
+  <div class="in">
+    <div class="title">لوحة استلام الطلبات <span class="tag">قسم أمن الهيئات الدبلوماسية والمنشآت الهامة</span></div>
+    <nav id="nav" hidden>
+      <button data-view="dash" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>المؤشرات</button>
+      <button data-view="reqs"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>الطلبات <span class="cnt" id="newCnt"></span></button>
+      <button data-view="map"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>الخارطة</button>
+      <button data-view="verify"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg>التحقق من تصريح</button>
+    </nav>
+    <div class="who" id="who" hidden></div>
+  </div>
+</div>
+<div id="banner"></div>
+<div id="sosStrip"></div>
+
+<section id="loginView" class="login-wrap">
+  <div class="login card">
+    <h1>دخول موظفي شرطة دبي</h1>
+    <div class="sub">استلام طلبات الهيئات الدبلوماسية ومتابعتها واعتمادها.</div>
+    <form id="loginForm"></form>
+  </div>
+</section>
+
+<main id="app" hidden>
+  <!-- المؤشرات -->
+  <section id="v-dash">
+    <div class="dash-h">
+      <div><h1>مؤشرات المنصة</h1><div class="muted" id="asOf"></div></div>
+      <div class="range" id="range">
+        <button data-d="7">7 أيام</button><button data-d="30" class="on">30 يوم</button><button data-d="0">الكل</button>
+      </div>
+    </div>
+    <div class="kpis" id="kpis"></div>
+    <div class="dgrid">
+      <div class="card pad"><h3 class="ch">الطلبات حسب نوع الخدمة</h3><div id="byCat"></div></div>
+      <div class="card pad"><h3 class="ch">الطلبات حسب الحالة</h3><div id="byStatus"></div></div>
+      <div class="card pad wide"><h3 class="ch">الطلبات اليومية</h3><div id="trend" class="trend"></div></div>
+      <div class="card pad"><h3 class="ch">متوسط زمن الإنجاز مقابل المهلة</h3><div id="slaChart"></div></div>
+      <div class="card pad"><h3 class="ch">رضا الهيئات الدبلوماسية</h3><div id="sat"></div></div>
+    </div>
+  </section>
+
+  <!-- الطلبات -->
+  <section id="v-reqs" hidden>
+    <div class="toolbar card">
+      <div class="search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" class="inp" placeholder="بحث برقم الطلب أو البعثة…"></div>
+      <select id="fStatus" class="inp"><option value="">كل الحالات</option></select>
+      <select id="fCat" class="inp"><option value="">كل الخدمات</option></select>
+      <label class="chk"><input type="checkbox" id="fOpen" checked> الطلبات المفتوحة فقط</label>
+    </div>
+    <div class="card" style="margin-top:14px;overflow:auto">
+      <table class="tbl">
+        <thead><tr><th>رقم الطلب</th><th>البعثة</th><th>الخدمة</th><th>الجهة المختصة</th><th>تاريخ التقديم</th><th>المهلة</th><th>الحالة</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- الخارطة -->
+  <section id="v-map" hidden>
+    <div class="sec-h" style="margin-top:0"><h2>مواقع الطلبات والمنشآت المؤمنة</h2><div class="legend" id="legend"></div></div>
+    <div class="card" style="padding:8px"><div id="bigMap" class="mapbox" style="height:560px"></div></div>
+    <div class="map-note">في النسخة الرسمية تُعرض على خارطة شرطة دبي الداخلية المعتمدة.</div>
+  </section>
+
+  <!-- التحقق -->
+  <section id="v-verify" hidden>
+    <div class="verify card pad">
+      <div class="vi"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg></div>
+      <h2>التحقق من تصريح رقمي</h2>
+      <p class="muted">أدخل رمز التصريح الظاهر أسفل رمز QR عند البعثة.</p>
+      <form id="vForm" class="vrow"><input id="vCode" class="inp num" dir="ltr" placeholder="XXXX-XXXX" maxlength="9" autocomplete="off"><button class="btn btn-p">تحقق</button></form>
+      <div id="vRes"></div>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="in">
+    <div>© 2026 القيادة العامة لشرطة دبي — الإدارة العامة لأمن الهيئات والمنشآت والطوارئ</div>
+    <div class="motto">حراسة <i></i> تأمين <i></i> استجابة</div>
+  </div>
+</footer>
+
+<div class="overlay" id="ov"></div>
+<div class="modal" id="modal"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/data.js"></script>
+<script src="assets/js/police.js"></script>
+</body>
+</html>
