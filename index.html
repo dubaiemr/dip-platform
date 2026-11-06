@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<script>try{if(localStorage.getItem("dip-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>المنصة الإلكترونية لخدمات الهيئات الدبلوماسية | شرطة دبي</title>
 <meta name="description" content="منصة موحدة وذكية لتقديم خدمات شرطة دبي الأمنية والمرورية والإدارية للهيئات الدبلوماسية.">
@@ -112,6 +113,37 @@
   .impact li .ic { color: var(--gold-l); margin-top: 3px; }
   .spacer { height: 80px; }
 
+
+  .flow { display: grid; grid-template-columns: 180px 1fr; gap: 18px; align-items: center; }
+  .flow .node { background: var(--card, #fff); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; text-align: center; box-shadow: var(--shadow); min-width: 150px; }
+  .flow .node b { display: block; font-size: 14px; }
+  .flow .node small { display: block; font-size: 11.5px; color: var(--muted); }
+  .flow .node.em { background: var(--g800); color: #fff; border-color: var(--g800); }
+  .flow .node.em small { color: rgba(255,255,255,.75); }
+  .flow .node.gold { border: 1.5px solid var(--gold); }
+  .flow .node.sos { border: 1.5px solid var(--red); background: color-mix(in srgb, var(--red) 8%, var(--card, #fff)); }
+  .flow .node.units { flex: 1; }
+  .flow .lanes { display: grid; gap: 16px; }
+  .flow .lane { display: flex; align-items: center; gap: 8px; padding: 14px; border-radius: 16px; border: 1px dashed color-mix(in srgb, var(--gold) 60%, var(--line)); position: relative; flex-wrap: wrap; }
+  .flow .lane.red { border-color: color-mix(in srgb, var(--red) 55%, var(--line)); }
+  .flow .lane .tag { position: absolute; top: -11px; inset-inline-start: 14px; background: var(--bg, #fff); padding: 0 8px; font-size: 12px; font-weight: 700; color: #9a6b1f; }
+  .flow .lane.red .tag { color: var(--red); }
+  .flow .arrow { width: 26px; height: 2px; background: var(--gold); position: relative; flex: none; }
+  .flow .arrow::after { content: ""; position: absolute; inset-inline-end: -2px; top: -4px; border: 5px solid transparent; border-inline-start-color: var(--gold); }
+  .flow .lane.red .arrow, .flow .lane.red .arrow::after { background: var(--red); }
+  .flow .lane.red .arrow::after { background: none; border-inline-start-color: var(--red); }
+  @media (max-width: 960px) { .flow { grid-template-columns: 1fr; } .flow .lane { flex-direction: column; } .flow .arrow { width: 2px; height: 18px; } .flow .arrow::after { inset-inline-end: -4px; top: auto; bottom: -6px; border-inline-start-color: transparent; border-top-color: var(--gold); } }
+  /* الوضع الداكن للصفحة التعريفية */
+  :root[data-theme="dark"] body { background: var(--bg); }
+  :root[data-theme="dark"] .fact, :root[data-theme="dark"] .ph, :root[data-theme="dark"] .ft { background: var(--card); border-color: var(--line); }
+  :root[data-theme="dark"] .sc { background: linear-gradient(180deg, var(--card), #0b2a1d); border-color: var(--line); }
+  :root[data-theme="dark"] .sc ul { color: var(--ink); }
+  :root[data-theme="dark"] .fact .v { color: var(--gold-l); }
+  :root[data-theme="dark"] .hs .n { background: var(--card); box-shadow: 0 0 0 8px var(--bg); color: var(--gold-l); }
+  :root[data-theme="dark"] .topnav { background: #00331f; border-bottom: 1px solid rgba(207,165,98,.25); }
+  :root[data-theme="dark"] .ph::before { color: #0f3524; }
+  :root[data-theme="dark"] .mock { background: #071f15; color: var(--ink); }
+  :root[data-theme="dark"] .mock .row { border-color: var(--line); }
   @media (max-width: 960px) {
     .hero .wrap { grid-template-columns: 1fr; padding-block: 50px 130px; }
     .hero h1 { font-size: 30px; }
@@ -135,12 +167,12 @@
 <header class="brandbar">
   <div class="in">
     <div class="brand-right">
-      <img class="dp" src="assets/img/logo-dubai-police.png" alt="شرطة دبي">
+      <img class="dp light-only" src="assets/img/logo-dubai-police.png" alt="شرطة دبي"><img class="dp dark-only" src="assets/img/logo-dubai-police-white.png" alt="شرطة دبي">
       <span class="sep"></span>
       <img class="acis" src="assets/img/logo-acis.png" alt="ACIS">
       <div class="dept"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div>
     </div>
-    <div class="brand-left"><img src="assets/img/logo-gov-dubai.png" alt="حكومة دبي"></div>
+    <div class="brand-left"><img class="light-only" src="assets/img/logo-gov-dubai.png" alt="حكومة دبي"><img class="dark-only" src="assets/img/logo-gov-dubai-white.png" alt="حكومة دبي"></div>
   </div>
 </header>
 
@@ -148,7 +180,7 @@
   <div class="wrap">
     <b>منصة الهيئات الدبلوماسية</b><span class="sec-tag">قسم أمن الهيئات الدبلوماسية والمنشآت الهامة</span>
     <nav>
-      <a href="#services">الخدمات</a><a href="#how">آلية العمل</a><a href="#features">المزايا الذكية</a><a href="#phases">مراحل المشروع</a>
+      <a href="#services">الخدمات</a><a href="#how">آلية العمل</a><a href="#features">المزايا الذكية</a><a href="#mofa">الربط مع الخارجية</a><a href="#phases">مراحل المشروع</a>
     </nav>
     <a class="btn btn-sm" style="background:#fff;color:var(--g800)" href="embassy.html">دخول البعثات</a>
   </div>
@@ -185,7 +217,7 @@
 </div></div></div>
 
 <section class="blk" id="services"><div class="wrap">
-  <div class="blk-h"><div class="k">الخدمات</div><h2>كل خدمات البعثة في مكان واحد</h2><p>بدل المخاطبات الورقية والتنقل بين الجهات، البعثة تقدم الطلب إلكترونياً ويتحول تلقائياً للجهة المختصة.</p></div>
+  <div class="blk-h"><div class="k">الخدمات</div><h2>كل خدمات البعثة في مكان واحد</h2><p>بدلاً من المخاطبات الورقية والتنقل بين الجهات، تقدّم البعثة طلبها إلكترونياً ويُوجَّه إلى الجهة المختصة.</p></div>
   <div class="svc-cats">
     <div class="sc"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div><h3>الخدمات الأمنية</h3>
       <ul><li>طلب تأمين منشأة دبلوماسية</li><li>طلب تأمين فعالية</li><li>تصريح دخول منطقة محظورة</li><li>طلب تأمين شخصية هامة</li></ul></div>
@@ -199,12 +231,12 @@
 </div></section>
 
 <section class="blk" id="how"><div class="wrap">
-  <div class="blk-h"><div class="k">آلية العمل</div><h2>من تقديم الطلب إلى إنجازه</h2><p>كل طلب له رقم مرجعي ومهلة إنجاز محددة، والبعثة تتابع حالته لحظة بلحظة.</p></div>
+  <div class="blk-h"><div class="k">آلية العمل</div><h2>من تقديم الطلب إلى إنجازه</h2><p>لكل طلب رقم مرجعي ومهلة إنجاز محددة، وتتابع البعثة حالته لحظة بلحظة.</p></div>
   <div class="how">
-    <div class="hs"><div class="n">1</div><h4>تقديم الطلب</h4><p>البعثة تختار الخدمة، وبياناتها تنعبى تلقائياً، وتحدد الموقع على الخارطة.</p></div>
-    <div class="hs"><div class="n">2</div><h4>توجيه تلقائي</h4><p>الطلب يوصل مباشرة للجهة المختصة مع عدّاد مهلة الإنجاز.</p></div>
-    <div class="hs"><div class="n">3</div><h4>دراسة واعتماد</h4><p>الموظف يستلم الطلب ويعتمده أو يحوّله، والتصريح الرقمي يصدر تلقائياً.</p></div>
-    <div class="hs"><div class="n">4</div><h4>تنفيذ وتقييم</h4><p>بعد الإنجاز تقيّم البعثة الخدمة، والتقييم يدخل في مؤشرات الأداء.</p></div>
+    <div class="hs"><div class="n">1</div><h4>تقديم الطلب</h4><p>تختار البعثة الخدمة عبر منصة وزارة الخارجية، وتُعبّأ بياناتها تلقائياً، ثم تحدد الموقع على الخارطة.</p></div>
+    <div class="hs"><div class="n">2</div><h4>التوزيع حسب الاختصاص</h4><p>يستقبل المنسق الرئيسي الطلب ويوجّهه إلى الجهة المختصة، ويبدأ عدّاد مهلة الإنجاز.</p></div>
+    <div class="hs"><div class="n">3</div><h4>الدراسة والاعتماد</h4><p>تدرس الجهة المختصة الطلب فتعتمده أو تعتذر عنه، ويصدر التصريح الرقمي تلقائياً.</p></div>
+    <div class="hs"><div class="n">4</div><h4>التنفيذ والتوثيق</h4><p>يُرفع تقرير التنفيذ مع الصور، وتقيّم البعثة الخدمة ليدخل التقييم في مؤشرات الأداء.</p></div>
   </div>
 </div></section>
 
@@ -212,19 +244,31 @@
   <div class="blk-h"><div class="k">المزايا الذكية</div><h2>أكثر من مجرد نموذج إلكتروني</h2></div>
   <div class="feat">
     <div class="ft red"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l9.5 16.5h-19L12 3z"/><path d="M12 10v4M12 17.5v.01"/></svg></div><div><h4>زر البلاغ الطارئ</h4><p>بلاغ فوري من البعثة مع موقعها، يظهر بتنبيه صوتي في لوحة العمليات.</p></div></div>
-    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg></div><div><h4>تصاريح رقمية بـ QR</h4><p>تصاريح الدخول والزيارة تصدر رقمياً، والدورية تتحقق منها بالرمز.</p></div></div>
-    <div class="ft gold"><div class="i"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><div><h4>تقويم الأيام الوطنية</h4><p>المنصة تذكّر البعثة قبل يومها الوطني وتقترح طلب تأمين الفعالية مسبقاً.</p></div></div>
-    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><h4>عدّاد مهلة الإنجاز</h4><p>لكل خدمة مهلة محددة، والطلبات المتأخرة تظهر بلون مختلف للمتابعة.</p></div></div>
-    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div><div><h4>المنشآت على الخارطة</h4><p>مقرات البعثات والفعاليات المؤمنة والبلاغات تظهر على خارطة واحدة.</p></div></div>
-    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div><h4>لوحة مؤشرات تفاعلية</h4><p>عدد الطلبات، زمن الإنجاز، الالتزام بالمهلة، ورضا السفارات.</p></div></div>
+    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg></div><div><h4>تصاريح رقمية بـ QR</h4><p>تصدر تصاريح الدخول والزيارة رقمياً، وتتحقق منها الدورية بالرمز.</p></div></div>
+    <div class="ft gold"><div class="i"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></div><div><h4>تقويم الأيام الوطنية</h4><p>تذكّر المنصة البعثة قبل يومها الوطني، وتقترح عليها طلب تأمين الفعالية مسبقاً.</p></div></div>
+    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><h4>عدّاد مهلة الإنجاز</h4><p>لكل خدمة مهلة محددة، وتظهر الطلبات المتأخرة بلون مميز للمتابعة.</p></div></div>
+    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg></div><div><h4>المنشآت على الخارطة</h4><p>تظهر المنشآت المؤمنة ومنازل القناصل والمنشآت الهامة والبلاغات على خارطة واحدة، مع وضع ليلي.</p></div></div>
+    <div class="ft"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div><h4>لوحة مؤشرات تفاعلية</h4><p>عدد الطلبات، والالتزام بمهلة الإنجاز، وتقارير التنفيذ، ورضا البعثات.</p></div></div>
+  </div>
+</div></section>
+
+<section class="blk" id="mofa"><div class="wrap">
+  <div class="blk-h"><div class="k">الربط مع وزارة الخارجية</div><h2>مساران للطلبات: عادي ومباشر</h2><p>تُرسل طلبات الخدمات عبر منصة وزارة الخارجية، أما البلاغات الطارئة فتصل مباشرة إلى شرطة دبي دون أي وسيط.</p></div>
+  <div class="flow">
+    <div class="node em"><b>الهيئة الدبلوماسية</b><small>قنصلية / سفارة</small></div>
+    <div class="lanes">
+      <div class="lane"><span class="tag">طلبات الخدمات</span><div class="arrow"></div><div class="node"><b>منصة وزارة الخارجية</b><small>البوابة المعتمدة للبعثات</small></div><div class="arrow"></div><div class="node gold"><b>المنسق الرئيسي</b><small>شرطة دبي — يوزّع حسب الاختصاص</small></div><div class="arrow"></div>
+        <div class="node units"><b>الجهات المختصة</b><small>أمن الهيئات الدبلوماسية · لجنة تأمين الفعاليات · المرور · تشريفات المطار · المؤسسات العقابية</small></div></div>
+      <div class="lane red"><span class="tag">البلاغات الطارئة</span><div class="arrow"></div><div class="node"><b>زر الطوارئ</b><small>داخل منصة وزارة الخارجية</small></div><div class="arrow"></div><div class="node sos"><b>غرفة العمليات — شرطة دبي</b><small>مباشرة وفي اللحظة نفسها، مع الموقع والصورة</small></div></div>
+    </div>
   </div>
 </div></section>
 
 <section class="blk" id="portals"><div class="wrap">
-  <div class="blk-h"><div class="k">التشغيل التجريبي</div><h2>منصتين مربوطتين ببعض</h2><p>البعثة تقدم من بوابتها، وشرطة دبي تستلم وتعتمد من لوحتها، والتحديث يوصل للطرفين مباشرة.</p></div>
+  <div class="blk-h"><div class="k">التشغيل التجريبي</div><h2>منصتان مترابطتان</h2><p>تقدّم البعثة طلبها من بوابتها، وتستقبله شرطة دبي وتعتمده من لوحتها، ويصل كل تحديث إلى الطرفين فوراً.</p></div>
   <div class="portals">
     <div class="portal a"><div class="i"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg></div>
-      <h3>بوابة الهيئات الدبلوماسية</h3><p>للسفارات والقنصليات: تقديم الطلبات، متابعتها، التصاريح الرقمية، والبلاغ الطارئ. بالعربي والإنجليزي.</p>
+      <h3>بوابة الهيئات الدبلوماسية</h3><p>للسفارات والقنصليات: تقديم الطلبات، متابعتها، التصاريح الرقمية، والبلاغ الطارئ، بعشر لغات.</p>
       <ul><li>دليل الخدمات</li><li>تتبع الطلب</li><li>تصاريح QR</li><li>تقييم الخدمة</li></ul>
       <a class="btn btn-w" href="embassy.html">دخول البوابة ←</a></div>
     <div class="portal b"><div class="i"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div>

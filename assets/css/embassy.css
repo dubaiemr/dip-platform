@@ -103,3 +103,33 @@
   .sec-h { flex-wrap: wrap; }
   .search { width: 100%; }
 }
+
+/* ---------- مكان البلاغ ونوعه (إصلاح شكل الدوائر) ---------- */
+.em-types input[type=radio], .em-where input[type=radio] { width: 18px; height: 18px; flex: none; margin: 0; padding: 0; accent-color: var(--red); box-shadow: none; }
+.em-types label { min-height: 48px; }
+.em-types label span { line-height: 1.4; }
+.em-where { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.em-where label { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; cursor: pointer; display: flex; gap: 10px; align-items: center; background: var(--card); }
+.em-where label .ico { width: 34px; height: 34px; border-radius: 10px; background: var(--g50); color: var(--g700); display: grid; place-items: center; flex: none; }
+.em-where label .ico .ic { width: 18px; height: 18px; }
+.em-where label b { display: block; font-size: 13px; }
+.em-where label small { display: block; font-size: 11px; color: var(--muted); }
+.em-where label:has(input:checked) { border-color: var(--red); background: var(--red-l); }
+.em-where label:has(input:checked) .ico { background: var(--red); color: #fff; }
+.em-types label { background: var(--card); }
+.hero .meta .mofa { flex-basis: 100%; color: var(--g700); background: var(--g50); border: 1px dashed color-mix(in srgb, var(--gold) 55%, var(--line)); border-radius: 10px; padding: 6px 10px; margin-top: 4px; }
+@media (max-width: 900px) { .em-where { grid-template-columns: 1fr; } }
+
+/* ---------- الوضع الداكن ---------- */
+:root[data-theme="dark"] .hero { background: linear-gradient(120deg, #071f15 55%, #0b2a1d); }
+:root[data-theme="dark"] .hero .meta .mofa { color: #b9dcc8; }
+:root[data-theme="dark"] .natday { background: linear-gradient(110deg, #1d1806, #071f15); border-color: #3a300d; }
+:root[data-theme="dark"] .rate-box { background: #1a1507; border-color: #3a300d; }
+:root[data-theme="dark"] .cats button, :root[data-theme="dark"] .filters button { background: var(--card); color: var(--ink); border-color: var(--line); }
+:root[data-theme="dark"] .cats button.on { background: var(--gold); color: #04140d; border-color: var(--gold); }
+:root[data-theme="dark"] .cats button.on .ic { color: #04140d; }
+:root[data-theme="dark"] .svc .ico { background: #0f3524; color: var(--gold-l); }
+:root[data-theme="dark"] .svc:hover { border-color: color-mix(in srgb, var(--gold) 55%, var(--line)); }
+:root[data-theme="dark"] .req.urgent { background: #1e0a0c; border-color: #5a1e21; }
+:root[data-theme="dark"] .permit .pb { background: #071f15; }
+:root[data-theme="dark"] .em-types label:has(input:checked), :root[data-theme="dark"] .em-where label:has(input:checked) { background: #3a1214; }

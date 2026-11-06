@@ -13,24 +13,28 @@
       navHome: "الخدمات", navReq: "طلباتي",
       loginTitle: "تسجيل دخول البعثة", loginSub: "منصة موحدة لخدمات شرطة دبي الأمنية والمرورية والإدارية للهيئات الدبلوماسية.",
       mission: "البعثة الدبلوماسية", email: "البريد الإلكتروني", password: "كلمة المرور", login: "دخول",
-      localHint: "تشغيل تجريبي: اختر أي بعثة وهمية من القائمة وادخل بدون كلمة مرور.",
+      localHint: "تشغيل تجريبي: اختر أي بعثة افتراضية من القائمة، وسجّل الدخول دون كلمة مرور.",
       welcome: "أهلاً بكم في بوابة الخدمات", sos: "بلاغ طارئ", sosSub: "يصل فوراً إلى غرفة العمليات",
       catalog: "دليل الخدمات", searchSvc: "ابحث عن خدمة…", all: "الكل",
       sTotal: "إجمالي الطلبات", sOpen: "طلبات جارية", sDone: "طلبات مكتملة", sPermits: "تصاريح سارية",
       hrs: "ساعة", min: "دقيقة", within: "مدة الإنجاز", permit: "يصدر تصريح رقمي", req: "قدّم الطلب",
-      myReqs: "طلباتي", noReqs: "ما فيه طلبات في هذا التصنيف.", open: "جارية", done: "مكتملة", rejected: "مرفوضة",
+      myReqs: "طلباتي", noReqs: "لا توجد طلبات في هذا التصنيف.", open: "جارية", done: "مكتملة", rejected: "الاعتذارات",
       newReq: "طلب جديد", autoData: "بيانات البعثة (تعبئة تلقائية)", officer: "ضابط الاتصال", phone: "الهاتف", type: "النوع",
-      attach: "المرفقات", attachHint: "في التشغيل التجريبي ينحفظ اسم الملف فقط.", submit: "إرسال الطلب", cancel: "إلغاء",
-      mapHint: "اضغط على الخارطة لتحديد الموقع.", required: "عبّ الحقول المطلوبة.", sent: "تم إرسال الطلب بنجاح — رقم الطلب: ",
+      attach: "المرفقات", attachHint: "يُحفظ اسم الملف فقط في التشغيل التجريبي.", submit: "إرسال الطلب", cancel: "إلغاء",
+      mapHint: "اضغط على الخارطة لتحديد الموقع.", required: "يرجى تعبئة الحقول المطلوبة.", sent: "تم إرسال الطلب بنجاح — رقم الطلب: ",
       details: "تفاصيل الطلب", ref: "رقم الطلب", service: "الخدمة", submitted: "تاريخ التقديم", unit: "الجهة المختصة",
-      status: "الحالة", history: "سجل الطلب", rejectReason: "سبب الرفض",
+      status: "الحالة", history: "سجل الطلب", rejectReason: "سبب الاعتذار",
       permitT: "تصريح رقمي", permitNo: "رمز التصريح", permitHint: "يُبرز للدورية أو البوابة للتحقق منه.", print: "طباعة",
       rateT: "قيّم الخدمة", rateNote: "ملاحظة (اختياري)", rateSend: "إرسال التقييم", rated: "شكراً لتقييمكم", yourRating: "تقييمكم",
-      emT: "بلاغ طارئ", emSub: "البلاغ يصل مباشرة لغرفة العمليات مع موقعكم.", emType: "نوع البلاغ",
+      emT: "بلاغ طارئ", emSub: "يصل البلاغ مباشرة إلى غرفة العمليات في شرطة دبي مع الموقع المحدد.", emType: "نوع البلاغ",
       emTypes: ["تهديد أمني", "تجمهر أمام المقر", "حادث داخل المقر", "أخرى"], emDesc: "وصف مختصر", emSend: "إرسال البلاغ الآن",
-      emSent: "تم إرسال البلاغ — غرفة العمليات تتابع الحالة الآن", locating: "جاري تحديد الموقع…",
-      natT: "يوم وطني قريب", natTxt: (d) => `باقي ${d} يوم على اليوم الوطني لدولتكم. تبون تقدمون طلب تأمين الفعالية من الحين؟`, natBtn: "تقديم طلب تأمين فعالية",
-      logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة", notifOff: "تفعيل التنبيهات", notifOn: "التنبيهات مفعّلة", notifTestT: "✅ التنبيهات شغالة", notifTestB: "بيوصلكم إشعار مع كل تحديث على طلباتكم.", notifDenied: "ما تم السماح بالتنبيهات — فعّلوها من إعدادات المتصفح", notifIos: "في الآيفون: أضيفوا البوابة للشاشة الرئيسية أولاً ثم فعّلوا التنبيهات من داخلها", updT: "تحديث على طلبكم", address: "العنوان", location: "الموقع", deviceLoc: "موقع الجهاز", dp: "شرطة دبي", natEvent: "احتفال اليوم الوطني"
+      emSent: "تم إرسال البلاغ، وتتابع غرفة العمليات الحالة الآن", locating: "جارٍ تحديد الموقع…",
+      natT: "يوم وطني قريب", natTxt: (d) => `يتبقى ${d} يوماً على اليوم الوطني لدولتكم. هل ترغبون في تقديم طلب تأمين الفعالية الآن؟`, natBtn: "تقديم طلب تأمين فعالية",
+      logout: "خروج", lateFor: "متأخر", leftFor: "متبقي على المهلة", notifOff: "تفعيل التنبيهات", notifOn: "التنبيهات مفعّلة", notifTestT: "✅ تم تفعيل التنبيهات", notifTestB: "سيصلكم إشعار مع كل تحديث على طلباتكم.", notifDenied: "لم يُسمح بالتنبيهات — يرجى تفعيلها من إعدادات المتصفح", notifIos: "في أجهزة آيفون: يرجى إضافة البوابة إلى الشاشة الرئيسية أولاً، ثم تفعيل التنبيهات من داخلها", updT: "تحديث على طلبكم", address: "العنوان", location: "الموقع", deviceLoc: "موقع الجهاز", dp: "شرطة دبي", natEvent: "احتفال اليوم الوطني",
+      consul: "القنصل العام", consAddr: "مقر القنصلية", resAddr: "منزل القنصل", resSame: "داخل مبنى القنصلية", resOther: "موقع مستقل",
+      emWhere: "مكان البلاغ", emAtCons: "في مقر القنصلية", emAtRes: "في منزل القنصل", emAtOther: "موقع آخر (الموقع الحالي)",
+      emDrag: "يمكن سحب العلامة على الخارطة لتعديل الموقع بدقة.", emPhoto: "إرفاق صورة (اختياري)", addPhoto: "إضافة صورة", noLoc: "تعذّر تحديد الموقع الحالي، فحُدِّد مقر القنصلية.",
+      mofaNote: "تُرسل طلبات الخدمات عبر منصة وزارة الخارجية إلى المنسق الرئيسي في شرطة دبي، أما البلاغات الطارئة فتصل مباشرة إلى غرفة العمليات.", viaMofa: "عبر منصة وزارة الخارجية"
     },
     en: {
       portal: "Diplomatic Missions Portal", portalTag: "Diplomatic Missions & Important Facilities Security Section",
@@ -42,19 +46,23 @@
       catalog: "Service catalogue", searchSvc: "Search services…", all: "All",
       sTotal: "Total requests", sOpen: "In progress", sDone: "Completed", sPermits: "Active permits",
       hrs: "hrs", min: "min", within: "Service time", permit: "Digital permit", req: "Request",
-      myReqs: "My requests", noReqs: "No requests here.", open: "Open", done: "Completed", rejected: "Rejected",
+      myReqs: "My requests", noReqs: "No requests here.", open: "Open", done: "Completed", rejected: "Declined",
       newReq: "New request", autoData: "Mission details (auto-filled)", officer: "Liaison officer", phone: "Phone", type: "Type",
       attach: "Attachments", attachHint: "Pilot mode stores the file name only.", submit: "Submit request", cancel: "Cancel",
       mapHint: "Click on the map to set the location.", required: "Please complete the required fields.", sent: "Request submitted — reference: ",
       details: "Request details", ref: "Reference", service: "Service", submitted: "Submitted", unit: "Handled by",
-      status: "Status", history: "History", rejectReason: "Rejection reason",
+      status: "Status", history: "History", rejectReason: "Reason for declining",
       permitT: "Digital permit", permitNo: "Permit code", permitHint: "Show it to the patrol or gate for verification.", print: "Print",
       rateT: "Rate this service", rateNote: "Comment (optional)", rateSend: "Send rating", rated: "Thank you for your feedback", yourRating: "Your rating",
       emT: "Emergency report", emSub: "Your report and location go straight to the Command Center.", emType: "Report type",
       emTypes: ["Security threat", "Gathering outside premises", "Incident on premises", "Other"], emDesc: "Short description", emSend: "Send report now",
       emSent: "Report sent — the Command Center is following up now", locating: "Locating…",
       natT: "National day coming up", natTxt: (d) => `${d} days to your National Day. Would you like to request event security now?`, natBtn: "Request event security",
-      logout: "Sign out", lateFor: "Overdue", leftFor: "Time left", notifOff: "Enable notifications", notifOn: "Notifications on", notifTestT: "✅ Notifications are on", notifTestB: "You will be notified of every update to your requests.", notifDenied: "Notifications were not allowed — enable them in browser settings", notifIos: "On iPhone: add the portal to your Home Screen first, then enable notifications from there", updT: "Update on your request", address: "Address", location: "Location", deviceLoc: "Device location", dp: "Dubai Police", natEvent: "National Day reception"
+      logout: "Sign out", lateFor: "Overdue", leftFor: "Time left", notifOff: "Enable notifications", notifOn: "Notifications on", notifTestT: "✅ Notifications are on", notifTestB: "You will be notified of every update to your requests.", notifDenied: "Notifications were not allowed — enable them in browser settings", notifIos: "On iPhone: add the portal to your Home Screen first, then enable notifications from there", updT: "Update on your request", address: "Address", location: "Location", deviceLoc: "Device location", dp: "Dubai Police", natEvent: "National Day reception",
+      consul: "Consul General", consAddr: "Consulate premises", resAddr: "Consul's residence", resSame: "inside the consulate building", resOther: "separate location",
+      emWhere: "Location of the incident", emAtCons: "At the consulate", emAtRes: "At the consul's residence", emAtOther: "Another location (current position)",
+      emDrag: "You can drag the marker on the map to adjust the exact location.", emPhoto: "Attach a photo (optional)", addPhoto: "Add photo", noLoc: "Current location unavailable; the consulate premises were selected.",
+      mofaNote: "Service requests are sent through the MOFA platform to the Dubai Police main coordinator; emergency reports reach the Command Center directly.", viaMofa: "via the MOFA platform"
     }
   };
   // اللغات الإضافية من i18n.js
@@ -231,8 +239,11 @@
     const m = MISSIONS[missionId];
     $("#missionName").textContent = nm(m);
     $("#missionMeta").innerHTML = `
+      <span>${UI.ic("user")} ${t("consul")}: ${esc(m.consul)}</span>
       <span>${UI.ic("user")} ${t("officer")}: ${esc(m.officer)}</span>
-      <span>${UI.ic("bell")} ${t("phone")}: <span class="num" dir="ltr">${esc(m.phone)}</span></span>`;
+      <span>${UI.ic("bell")} ${t("phone")}: <span class="num" dir="ltr">${esc(m.phone)}</span></span>
+      <span>${UI.ic("house")} ${t("resAddr")}: ${m.res.same ? t("resSame") : t("resOther")}</span>
+      <span class="mofa">${UI.ic("route")} ${t("mofaNote")}</span>`;
 
     const open = all.filter(r => !["completed", "rejected"].includes(r.status)).length;
     const done = all.filter(r => r.status === "completed").length;
@@ -334,11 +345,11 @@
     const s = svc(sid), m = MISSIONS[missionId];
     let loc = null;
     openModal(`
-      <div class="modal-h"><h3>${UI.ic(CATEGORIES[s.cat].icon)} ${esc(nm(s))}</h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-h"><h3>${UI.ic(CATEGORIES[s.cat].icon)}<span>${esc(nm(s))}<span class="sub">${esc(nm(CATEGORIES[s.cat]))} · ${t("viaMofa")}</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
       <form id="reqForm">
         <div class="modal-b">
           <div class="auto"><div class="t">${UI.ic("check")} ${t("autoData")}</div>
-            <div><span>${t("mission")}</span>${esc(nm(m))}</div><div><span>${t("officer")}</span>${esc(m.officer)}</div><div><span>${t("phone")}</span><span class="num" dir="ltr" style="color:inherit;font-size:13px">${esc(m.phone)}</span></div></div>
+            <div><span>${t("mission")}</span>${esc(nm(m))}</div><div><span>${t("consul")}</span>${esc(m.consul)}</div><div><span>${t("officer")}</span>${esc(m.officer)}</div><div><span>${t("phone")}</span><span class="num" dir="ltr" style="color:inherit;font-size:13px">${esc(m.phone)}</span></div></div>
           <div class="grid2">${s.fields.map(f => fieldHtml(f, pre)).join("")}
             <div class="field full"><label>${t("attach")}</label><input type="file" id="fFiles" multiple><div class="map-note">${t("attachHint")}</div></div>
           </div>
@@ -349,8 +360,7 @@
 
     if (s.fields.some(f => f.type === "map") && window.L) {
       setTimeout(() => {
-        map = L.map("fMap").setView([m.lat, m.lng], 13);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(map);
+        map = UI.map("fMap", [m.lat, m.lng], 13);
         let mk = null;
         map.on("click", e => {
           loc = { lat: +e.latlng.lat.toFixed(5), lng: +e.latlng.lng.toFixed(5), label: "" };
@@ -371,10 +381,10 @@
       if (s.fields.some(f => f.type === "map") && !loc) { UI.toast(t("mapHint"), "warn"); return; }
       const now = Date.now();
       const r = {
-        ref: makeRef(), missionId, missionName: m.ar, serviceId: sid, category: s.cat, unit: CATEGORIES[s.cat].unit,
-        fields, location: loc, attachments: [...$("#fFiles").files].map(f => f.name),
+        ref: makeRef(), missionId, missionName: m.ar, serviceId: sid, category: s.cat, unit: "coord", suggestedUnit: DIP.unitFor(s), source: "mofa",
+        fields, location: loc, attachments: [...$("#fFiles").files].map(f => f.name), photos: [],
         status: "new", urgent: false, slaHours: s.sla, createdAt: now, updatedAt: now,
-        history: [{ status: "new", at: now, by: m.ar, note: "" }], notes: []
+        history: [{ status: "new", at: now, by: m.ar, note: "وارد من منصة وزارة الخارجية" }], notes: []
       };
       try { await Store.add(r); closeModal(); UI.toast(t("sent") + r.ref); show("requests"); }
       catch (err) { UI.toast(err.message, "err"); }
@@ -386,7 +396,7 @@
     EAlerts.markSeen(id);
     const s = svc(r.serviceId);
     const rows = s.fields.filter(f => f.type !== "map").map(f => `<dt>${esc(flabel(f).replace(/\s*\(.*\)$/, ""))}</dt><dd>${esc(r.fields[f.k] || "—")}</dd>`).join("")
-      + (r.urgent ? `<dt>${t("emType")}</dt><dd>${esc(r.fields.type)}</dd><dt>${t("emDesc")}</dt><dd>${esc(r.fields.desc || "—")}</dd>` : "")
+      + (r.urgent ? `<dt>${t("emType")}</dt><dd>${esc(r.fields.type)}</dd><dt>${t("emWhere")}</dt><dd>${esc(r.location && r.location.label || "—")}</dd><dt>${t("emDesc")}</dt><dd>${esc(r.fields.desc || "—")}</dd>` : "")
       + (r.location ? `<dt>${t("location")}</dt><dd class="num" dir="ltr" style="text-align:start">${r.location.lat != null ? r.location.lat + ", " + r.location.lng : esc(r.location.label)}</dd>` : "")
       + (r.attachments && r.attachments.length ? `<dt>${t("attach")}</dt><dd>${r.attachments.map(esc).join("\n")}</dd>` : "");
     const hist = r.history.slice().reverse().map(h => `<li style="--c:${STATUSES[h.status].color}"><b>${esc(nm(STATUSES[h.status]))}</b>${h.note ? ` — ${esc(h.note)}` : ""}<div class="t">${fmtDate(h.at)} · ${esc(h.by)}</div></li>`).join("");
@@ -404,7 +414,7 @@
         <button class="btn btn-gold btn-sm" style="margin-top:10px" id="rateBtn" disabled>${t("rateSend")}</button></div>`) : "";
 
     openModal(`
-      <div class="modal-h"><h3>${UI.ic(CATEGORIES[s.cat].icon)} ${esc(nm(s))}</h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-h ${r.urgent ? "sos" : ""}"><h3>${UI.ic(CATEGORIES[s.cat].icon)}<span>${esc(nm(s))}<span class="sub">${esc(nm(CATEGORIES[s.cat]))}</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
       <div class="modal-b">
         <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
           <div><span class="muted" style="font-size:12px">${t("ref")}</span><div class="num bold" dir="ltr" style="font-size:18px;text-align:start">${esc(r.ref)}</div></div>
@@ -417,8 +427,10 @@
         ${rate}
         <div class="sec-h"><h2>${t("history")}</h2></div>
         <ul class="hist">${hist}</ul>
+        ${r.photos && r.photos.length ? `<div class="sec-h"><h2>${t("emPhoto").replace(/\s*\(.*\)$/, "")}</h2></div><div class="gallery">${r.photos.map(p => `<img src="${p}" alt="">`).join("")}</div>` : ""}
       </div>`);
     $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal);
+    UI.bindGallery($("#modal"));
     if ($("#qr") && !window.QRCode) $("#qr").remove();
     if ($("#qr") && window.QRCode) new QRCode($("#qr"), { text: `DUBAI POLICE | DIP PERMIT | ${r.permitCode} | ${r.ref}`, width: 118, height: 118, colorDark: "#00492c" });
     const pb = $("#printBtn"); if (pb) pb.onclick = () => printPermit();
@@ -435,31 +447,60 @@
     w.document.close();
   }
 
-  /* ---------- البلاغ الطارئ ---------- */
+  /* ---------- البلاغ الطارئ: مكان البلاغ + خارطة قابلة للتعديل + صورة ---------- */
   $("#sosBtn").onclick = () => {
     const m = MISSIONS[missionId];
-    let loc = { lat: m.lat, lng: m.lng, label: "مقر البعثة" };
+    let where = "cons", loc = { lat: m.cons.lat, lng: m.cons.lng, label: T.ar.consAddr }, photo = null, mk = null, geo = null;
+    const opt = (v, ic, l, sub) => `<label><input type="radio" name="where" value="${v}" ${v === "cons" ? "checked" : ""}><span class="ico">${UI.ic(ic)}</span><span><b>${l}</b>${sub ? `<small>${sub}</small>` : ""}</span></label>`;
     openModal(`
-      <div class="modal-h" style="background:var(--red-l)"><h3 style="color:var(--red)">${UI.ic("alert")} ${t("emT")}</h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-h sos"><h3>${UI.ic("alert")}<span>${t("emT")}<span class="sub">${t("sosSub")}</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
       <form id="emForm"><div class="modal-b">
         <p class="muted" style="margin-top:0">${t("emSub")}</p>
-        <div class="field"><label>${t("emType")}</label><div class="em-types">${t("emTypes").map((x, i) => `<label><input type="radio" name="type" value="${esc(x)}" ${i === 0 ? "checked" : ""}> ${esc(x)}</label>`).join("")}</div></div>
-        <div class="field" style="margin-top:14px"><label>${t("emDesc")}</label><textarea name="desc"></textarea></div>
-        <div class="map-note" id="emLoc">${UI.ic("map")} ${t("locating")}</div>
+        <div class="box"><h4>${UI.ic("pin")} ${t("emWhere")}</h4>
+          <div class="em-where">${opt("cons", "building", t("emAtCons"), "")}${opt("res", "house", t("emAtRes"), m.res.same ? t("resSame") : t("resOther"))}${opt("other", "pin", t("emAtOther"), "")}</div>
+          <div class="mapbox" id="emMap" style="margin-top:12px"></div>
+          <div class="map-note" id="emLoc"></div>
+        </div>
+        <div class="box"><h4>${UI.ic("alert")} ${t("emType")}</h4><div class="em-types">${t("emTypes").map((x, i) => `<label><input type="radio" name="type" value="${esc(x)}" ${i === 0 ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")}</div></div>
+        <div class="box"><h4>${UI.ic("list")} ${t("emDesc")}</h4><div class="field"><textarea name="desc"></textarea></div></div>
+        <div class="box"><h4>${UI.ic("camera")} ${t("emPhoto")}</h4>
+          <div class="ph-pick"><label class="btn btn-o btn-sm">${UI.ic("camera")} ${t("addPhoto")}<input type="file" id="emPhoto" accept="image/*" capture="environment"></label><span id="emThumb"></span></div></div>
       </div>
       <div class="modal-f"><button type="button" class="btn btn-o" data-close>${t("cancel")}</button><button class="btn btn-r">${UI.ic("alert")} ${t("emSend")}</button></div></form>`);
     $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal);
-    const showLoc = () => { const el = $("#emLoc"); if (el) el.innerHTML = `${UI.ic("map")} <span class="num" dir="ltr">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</span> (${esc(loc.label)})`; };
-    if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => { loc = { lat: p.coords.latitude, lng: p.coords.longitude, label: t("deviceLoc") }; showLoc(); }, showLoc, { timeout: 6000 });
-    else showLoc();
+    const label = () => where === "cons" ? T.ar.consAddr : where === "res" ? T.ar.resAddr + (m.res.same ? " (" + T.ar.resSame + ")" : "") : T.ar.emAtOther;
+    const showLoc = () => { const el = $("#emLoc"); if (el) el.innerHTML = `${UI.ic("map")} <span class="num" dir="ltr">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</span> — ${t("emDrag")}`; };
+    const place = (lat, lng) => {
+      loc = { lat: +lat.toFixed(6), lng: +lng.toFixed(6), label: label() };
+      if (map) { if (mk) mk.setLatLng([lat, lng]); else { mk = L.marker([lat, lng], { draggable: true }).addTo(map); mk.on("dragend", e => { const p = e.target.getLatLng(); loc.lat = +p.lat.toFixed(6); loc.lng = +p.lng.toFixed(6); showLoc(); }); } map.setView([lat, lng], 16); }
+      showLoc();
+    };
+    if (window.L) setTimeout(() => { map = UI.map("emMap", [m.cons.lat, m.cons.lng], 16); map.on("click", e => place(e.latlng.lat, e.latlng.lng)); place(m.cons.lat, m.cons.lng); }, 60);
+    else { $("#emMap").remove(); showLoc(); }
+    $("#modal").querySelectorAll('input[name="where"]').forEach(r => r.onchange = () => {
+      where = r.value;
+      if (where === "cons") place(m.cons.lat, m.cons.lng);
+      else if (where === "res") place(m.res.lat, m.res.lng);
+      else {
+        $("#emLoc").innerHTML = `${UI.ic("map")} ${t("locating")}`;
+        if (navigator.geolocation) navigator.geolocation.getCurrentPosition(p => place(p.coords.latitude, p.coords.longitude),
+          () => { UI.toast(t("noLoc"), "warn"); place(m.cons.lat, m.cons.lng); }, { timeout: 8000, enableHighAccuracy: true });
+        else place(m.cons.lat, m.cons.lng);
+      }
+    });
+    $("#emPhoto").onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      try { photo = await UI.compressImage(f, 1000, 0.6); $("#emThumb").innerHTML = `<img class="thumb" src="${photo}" alt="">`; } catch (err) { photo = null; }
+    };
     $("#emForm").onsubmit = async e => {
       e.preventDefault();
       const fd = new FormData(e.target), now = Date.now(), s = svc("e1");
+      loc.label = label();
       const r = {
-        ref: makeRef().replace("DIP", "SOS"), missionId, missionName: m.ar, serviceId: "e1", category: "emergency", unit: "ops",
-        fields: { type: fd.get("type"), desc: (fd.get("desc") || "").toString().trim() }, location: loc, attachments: [],
+        ref: makeRef().replace("DIP", "SOS"), missionId, missionName: m.ar, serviceId: "e1", category: "emergency", unit: "ops", source: "direct",
+        fields: { type: fd.get("type"), desc: (fd.get("desc") || "").toString().trim(), where }, location: loc, attachments: [], photos: photo ? [photo] : [],
         status: "new", urgent: true, slaHours: s.sla, createdAt: now, updatedAt: now,
-        history: [{ status: "new", at: now, by: m.ar, note: "بلاغ طارئ" }], notes: []
+        history: [{ status: "new", at: now, by: m.ar, note: "بلاغ طارئ — وصل مباشرة" }], notes: []
       };
       try { await Store.add(r); closeModal(); UI.toast(t("emSent"), "err"); show("requests"); } catch (err) { UI.toast(err.message, "err"); }
     };

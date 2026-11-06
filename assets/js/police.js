@@ -3,7 +3,7 @@
    ============================================================ */
 (function () {
   "use strict";
-  const { SERVICES, CATEGORIES, MISSIONS, STATUSES, UNITS, svc, fmtDate, makePermitCode, esc, slaInfo, fmtDur, Store, HOUR, DAY } = DIP;
+  const { SERVICES, CATEGORIES, MISSIONS, FACILITIES, FAC_TYPES, SOURCES, STATUSES, UNITS, svc, unitFor, fmtDate, makePermitCode, esc, slaInfo, fmtDur, Store, HOUR, DAY } = DIP;
   const $ = s => document.querySelector(s);
 
   let all = [], officer = "ضابط المناوبة", rangeDays = 30, view = "dash", known = null, openId = null, bigMap = null, mapLayer = null;
@@ -13,7 +13,7 @@
     $("#loginForm").innerHTML = Store.picker ? `
       <div class="field"><label>اسم الموظف</label><input id="lgName" value="ضابط المناوبة"></div>
       <button class="btn btn-p" style="width:100%">دخول</button>
-      <div class="hint">تشغيل تجريبي: ادخل بأي اسم بدون كلمة مرور.</div>` : `
+      <div class="hint">تشغيل تجريبي: سجّل الدخول بأي اسم دون كلمة مرور.</div>` : `
       <div class="field"><label>البريد الإلكتروني</label><input id="lgEmail" type="email" dir="ltr" required></div>
       <div class="field"><label>كلمة المرور</label><input id="lgPass" type="password" dir="ltr" required></div>
       <button class="btn btn-p" style="width:100%">دخول</button>`;
@@ -30,14 +30,16 @@
     officer = name;
     $("#loginView").hidden = true; $("#app").hidden = false; $("#nav").hidden = false; $("#who").hidden = false;
     $("#who").innerHTML = `<button class="act notif" id="notifBtn"></button>${UI.ic("user")}<span>${esc(name)}</span>
-      <button class="act" id="seedBtn" title="${Store.mode === "local" ? "إعادة البيانات التجريبية" : "إضافة بيانات تجريبية"}">${UI.ic("refresh")}</button>
+      <button class="act" id="seedBtn" title="تحميل البيانات التجريبية">${UI.ic("refresh")}</button>
+      <button class="act danger-btn" id="clearBtn" title="مسح كل الطلبات">${UI.ic("trash")}</button>
       <button class="act" id="logoutBtn" title="خروج">${UI.ic("logout")}</button>`;
     $("#logoutBtn").onclick = async () => { try { sessionStorage.removeItem("dip-officer"); } catch (e) {} await Store.signOut(); location.reload(); };
-    $("#seedBtn").onclick = async () => {
-      if (!confirmBox()) return;
-      if (Store.mode === "local") await Store.reset(); else await Store.seed();
-      UI.toast("تم تحميل البيانات التجريبية");
-    };
+    $("#seedBtn").onclick = () => confirmBox("تحميل البيانات التجريبية",
+      Store.mode === "local" ? "ستُستبدل جميع الطلبات الحالية في هذا المتصفح ببيانات تجريبية جاهزة." : "ستُضاف مجموعة من الطلبات التجريبية إلى قاعدة البيانات، وتظهر فوراً في المنصتين.",
+      "تحميل", async () => { if (Store.mode === "local") await Store.reset(); else await Store.seed(); UI.toast("تم تحميل البيانات التجريبية"); });
+    $("#clearBtn").onclick = () => confirmBox("مسح كل الطلبات",
+      "سيُحذف جميع الطلبات والبلاغات والتقارير من المنصتين (بوابة الهيئات الدبلوماسية ولوحة الشرطة)، لتبدأ التجربة من الصفر. لا يمكن التراجع عن هذا الإجراء.",
+      "مسح الكل", async () => { await Store.clear(); known = new Set(); UI.toast("تم مسح جميع الطلبات — المنصتان جاهزتان لتجربة جديدة"); }, true);
     Alerts.init();
     Store.subscribe(list => {
       all = list.slice().sort((a, b) => (b.urgent && b.status !== "completed") - (a.urgent && a.status !== "completed") || b.createdAt - a.createdAt);
@@ -47,14 +49,11 @@
     setInterval(() => { if (view === "reqs") renderRows(); renderSos(); }, 30e3);
   }
   // نافذة تأكيد داخلية بدل confirm()
-  let confirmed = false;
-  function confirmBox() {
-    if (confirmed) { confirmed = false; return true; }
-    openModal(`<div class="modal-h"><h3>${UI.ic("refresh")} البيانات التجريبية</h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
-      <div class="modal-b">${Store.mode === "local" ? "سيتم حذف كل الطلبات الحالية في هذا المتصفح واستبدالها بالبيانات التجريبية." : "سيتم إضافة 12 طلب تجريبي إلى قاعدة البيانات."}</div>
-      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-p" id="okBtn">متابعة</button></div>`);
-    $("#okBtn").onclick = () => { closeModal(); confirmed = true; $("#seedBtn").click(); };
-    return false;
+  function confirmBox(title, text, okLabel, onOk, danger) {
+    openModal(`<div class="modal-h ${danger ? "sos" : ""}"><h3>${UI.ic(danger ? "trash" : "refresh")}<span>${title}</span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b"><p style="margin:0">${text}</p></div>
+      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn ${danger ? "btn-r" : "btn-p"}" id="okBtn">${okLabel}</button></div>`);
+    $("#okBtn").onclick = async () => { $("#okBtn").disabled = true; try { await onOk(); } catch (e) { UI.toast(e.message, "err"); } closeModal(); };
   }
 
   // تنبيه عند وصول طلب جديد
@@ -93,8 +92,8 @@
         if (Notification.permission === "granted") { this.test(); return; }
         const p = await Notification.requestPermission();
         if (p === "granted") { UI.toast("تم تفعيل التنبيهات"); this.test(); }
-        else if (/iPhone|iPad/.test(navigator.userAgent) && !navigator.standalone) UI.toast("في الآيفون: أضف اللوحة للشاشة الرئيسية أولاً، ثم فعّل التنبيهات من داخلها", "warn");
-        else UI.toast("ما تم السماح بالتنبيهات — فعّلها من إعدادات المتصفح", "warn");
+        else if (/iPhone|iPad/.test(navigator.userAgent) && !navigator.standalone) UI.toast("في أجهزة آيفون: أضف اللوحة إلى الشاشة الرئيسية أولاً، ثم فعّل التنبيهات من داخلها", "warn");
+        else UI.toast("لم يُسمح بالتنبيهات — يرجى تفعيلها من إعدادات المتصفح", "warn");
         this.button();
       };
     },
@@ -114,7 +113,7 @@
         badge: "assets/img/icons/badge-96.png", vibrate: r.urgent ? [400, 150, 400, 150, 400] : [200]
       });
     },
-    test() { this.show("✅ التنبيهات شغالة", { body: "بيوصلك إشعار مع كل طلب جديد، وإشعار مميز للبلاغات الطارئة.", tag: "test", icon: "assets/img/icons/police-192.png", badge: "assets/img/icons/badge-96.png" }); },
+    test() { this.show("✅ تم تفعيل التنبيهات", { body: "سيصلك إشعار مع كل طلب جديد، وإشعار مميز للبلاغات الطارئة.", tag: "test", icon: "assets/img/icons/police-192.png", badge: "assets/img/icons/badge-96.png" }); },
     // رقم على أيقونة التطبيق + عنوان وأيقونة التبويب
     update() {
       const nNew = all.filter(r => r.status === "new").length;
@@ -125,7 +124,7 @@
       const fav = document.querySelector('link[rel="icon"]');
       if (fav) fav.href = sos ? "assets/img/icons/police-sos-64.png" : "assets/img/icons/police-64.png";
       const tc = document.querySelector('meta[name="theme-color"]');
-      if (tc) tc.content = sos ? "#c53030" : "#ffffff";
+      if (tc) { if (sos) { tc.content = "#c53030"; tc.dataset.alert = "1"; } else { delete tc.dataset.alert; tc.content = document.documentElement.dataset.theme === "dark" ? "#031a10" : "#ffffff"; } }
     }
   };
 
@@ -178,13 +177,15 @@
     const lateOpen = open.filter(r => slaInfo(r).late).length;
     const permits = L.filter(r => r.permitCode && r.status !== "rejected").length;
     const sos = L.filter(r => r.urgent).length;
+    const reports = L.filter(r => r.report).length;
+    const needRep = L.filter(r => !r.report && ["completed", "inprogress"].includes(r.status) && ["security", "emergency"].includes(r.category)).length;
     const k = (ic, l, v, s, bar, hl) => `<div class="card kpi ${hl ? "hl" : ""}"><div class="l">${UI.ic(ic)} ${l}</div><div class="v">${v}</div><div class="s">${s}</div>${bar != null ? `<div class="bar"><i style="width:${bar}%"></i></div>` : ""}</div>`;
     $("#kpis").innerHTML =
       k("list", "إجمالي الطلبات", L.length, `${open.length} مفتوح · ${done.length} مكتمل`, null, true) +
-      k("clock", "الالتزام بمهلة الإنجاز", `${slaPct}<small>%</small>`, `المستهدف 95%`, slaPct) +
-      k("chart", "متوسط زمن الإنجاز", `${avgH < 1 ? Math.round(avgH * 60) + "<small>دقيقة</small>" : avgH.toFixed(1) + "<small>ساعة</small>"}`, "من التقديم إلى الإكمال") +
+      `<div class="card kpi"><div class="l">${UI.ic("clock")} مهلة الإنجاز</div><div class="v2"><div class="v">${slaPct}<small>% التزام</small></div><span class="sep2"></span><div class="v">${avgH < 1 ? Math.round(avgH * 60) + "<small>دقيقة</small>" : avgH.toFixed(1) + "<small>ساعة</small>"}</div></div><div class="s">نسبة الالتزام (المستهدف 95%) · متوسط زمن الإنجاز</div><div class="bar"><i style="width:${slaPct}%"></i></div></div>` +
+      k("report", "تقارير التنفيذ", `${reports}<small>/ ${needRep + reports}</small>`, needRep ? `${needRep} مهمة بانتظار التقرير` : "جميع المهام موثقة بتقارير", (needRep + reports) ? Math.round(reports / (needRep + reports) * 100) : 0) +
       k("star", "رضا الهيئات الدبلوماسية", `${satPct}<small>%</small>`, `${rated.length} تقييم`, satPct) +
-      k("bell", "طلبات جديدة بانتظار الاستلام", L.filter(r => r.status === "new").length, "تحتاج إجراء") +
+      k("bell", "طلبات بانتظار الإجراء", L.filter(r => r.status === "new").length, `${L.filter(r => r.unit === "coord").length} بانتظار توزيع المنسق الرئيسي`) +
       k("alert", "طلبات متجاوزة للمهلة", lateOpen, "من الطلبات المفتوحة") +
       k("qr", "تصاريح رقمية صادرة", permits, "قابلة للتحقق بـ QR") +
       k("alert", "بلاغات طارئة", sos, "خلال الفترة");
@@ -231,7 +232,8 @@
   /* ---------- قائمة الطلبات ---------- */
   Object.entries(STATUSES).forEach(([id, s]) => $("#fStatus").insertAdjacentHTML("beforeend", `<option value="${id}">${s.ar}</option>`));
   Object.entries(CATEGORIES).forEach(([id, c]) => $("#fCat").insertAdjacentHTML("beforeend", `<option value="${id}">${c.ar}</option>`));
-  ["#q", "#fStatus", "#fCat", "#fOpen"].forEach(s => $(s).addEventListener("input", renderRows));
+  Object.entries(UNITS).forEach(([id, u]) => $("#fUnit").insertAdjacentHTML("beforeend", `<option value="${id}">${u.ar}</option>`));
+  ["#q", "#fStatus", "#fCat", "#fUnit", "#fOpen"].forEach(s => $(s).addEventListener("input", renderRows));
 
   function slaTag(r) {
     const s = slaInfo(r);
@@ -240,93 +242,129 @@
     return `<span class="sla-tag ${cls}">${s.late ? "متأخر " + fmtDur(-s.left) : fmtDur(s.left)}</span>`;
   }
   function renderRows() {
-    const q = $("#q").value.trim().toLowerCase(), st = $("#fStatus").value, cat = $("#fCat").value, onlyOpen = $("#fOpen").checked;
-    const L = all.filter(r => (!st || r.status === st) && (!cat || r.category === cat) && (!onlyOpen || !["completed", "rejected"].includes(r.status))
+    const q = $("#q").value.trim().toLowerCase(), st = $("#fStatus").value, cat = $("#fCat").value, un = $("#fUnit").value, onlyOpen = $("#fOpen").checked;
+    const L = all.filter(r => (!st || r.status === st) && (!cat || r.category === cat) && (!un || r.unit === un) && (!onlyOpen || !["completed", "rejected"].includes(r.status))
       && (!q || (r.ref + r.missionName + svc(r.serviceId).ar).toLowerCase().includes(q)));
     $("#rows").innerHTML = L.map(r => `<tr class="row ${r.urgent && !["completed", "rejected"].includes(r.status) ? "urgent" : ""}" data-id="${r.id}">
       <td class="num" dir="ltr" style="text-align:start">${r.status === "new" ? '<span class="new-dot"></span>' : ""}${esc(r.ref)}</td>
       <td>${esc(r.missionName)}</td>
       <td>${r.urgent ? `<span class="chip red">${UI.ic("alert")} طارئ</span> ` : ""}${esc(svc(r.serviceId).ar)}</td>
-      <td class="muted">${esc(UNITS[r.unit].ar)}</td>
+      <td class="muted">${r.unit === "coord" ? `<span class="src-tag">${UI.ic("route")} بانتظار التوزيع</span>` : esc((UNITS[r.unit] || {}).ar || "")}</td>
       <td class="num">${fmtDate(r.createdAt)}</td>
       <td>${slaTag(r)}</td>
-      <td>${UI.statusBadge(r.status)}</td></tr>`).join("") || `<tr><td colspan="7" class="empty">ما فيه طلبات مطابقة.</td></tr>`;
+      <td>${UI.statusBadge(r.status)}</td></tr>`).join("") || `<tr><td colspan="7" class="empty">لا توجد طلبات مطابقة.</td></tr>`;
     $("#rows").querySelectorAll("tr.row").forEach(tr => tr.onclick = () => openDetail(tr.dataset.id));
   }
 
   /* ---------- تفاصيل الطلب والإجراءات ---------- */
   let miniMap = null;
-  function openModal(html) { $("#modal").innerHTML = html; $("#modal").classList.add("open"); $("#ov").classList.add("open"); $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal); }
-  function closeModal() { $("#modal").classList.remove("open"); $("#ov").classList.remove("open"); openId = null; if (miniMap) { miniMap.remove(); miniMap = null; } }
+  function openModal(html) { if (miniMap) { miniMap.remove(); miniMap = null; } $("#modal").innerHTML = html; $("#modal").classList.add("open"); $("#ov").classList.add("open"); $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal); }
+  function closeModal() { $("#modal").classList.remove("open"); $("#ov").classList.remove("open"); openId = null; repOpen = false; if (miniMap) { miniMap.remove(); miniMap = null; } }
   $("#ov").onclick = closeModal;
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
+  let repOpen = false;
+
+  const WHERE = { cons: "مقر القنصلية", res: "منزل القنصل", other: "موقع آخر" };
+  const canReport = r => ["inprogress", "completed"].includes(r.status);
 
   function openDetail(id, refresh) {
     const r = all.find(x => x.id === id); if (!r) return;
+    if (refresh && repOpen) return;                // لا نعيد الرسم أثناء تعبئة التقرير
     const keepScroll = refresh ? $("#modal").scrollTop : 0;
     openId = id;
     const s = svc(r.serviceId), m = MISSIONS[r.missionId] || {};
     const rows = s.fields.filter(f => f.type !== "map").map(f => `<dt>${esc(f.ar.replace(/\s*\(.*\)$/, ""))}</dt><dd>${esc(r.fields[f.k] || "—")}</dd>`).join("")
-      + (r.urgent ? `<dt>نوع البلاغ</dt><dd>${esc(r.fields.type)}</dd><dt>الوصف</dt><dd>${esc(r.fields.desc || "—")}</dd>` : "")
+      + (r.urgent ? `<dt>نوع البلاغ</dt><dd>${esc(r.fields.type)}</dd><dt>مكان البلاغ</dt><dd>${esc((r.location && r.location.label) || WHERE[r.fields.where] || "—")}</dd><dt>الوصف</dt><dd>${esc(r.fields.desc || "—")}</dd>` : "")
       + (r.attachments && r.attachments.length ? `<dt>المرفقات</dt><dd>${r.attachments.map(esc).join("\n")}</dd>` : "");
     const hist = r.history.slice().reverse().map(h => `<li style="--c:${STATUSES[h.status].color}"><b>${STATUSES[h.status].ar}</b>${h.note ? ` — ${esc(h.note)}` : ""}<div class="t">${fmtDate(h.at)} · ${esc(h.by)}</div></li>`).join("");
     const notes = (r.notes || []).map(n => `<li style="--c:#94a3b8"><b>ملاحظة داخلية</b> — ${esc(n.text)}<div class="t">${fmtDate(n.at)} · ${esc(n.by)}</div></li>`).join("");
+    const hasMap = r.location && r.location.lat != null;
+    const photo = (r.photos || [])[0];
 
     // الإجراءات المتاحة حسب الحالة
     let acts = "";
-    if (r.urgent) {
+    if (r.unit === "coord") acts = "";
+    else if (r.urgent) {
       if (r.status === "new") acts = `<button class="btn btn-r" data-go="inprogress">${UI.ic("alert")} مباشرة البلاغ</button>`;
       else if (r.status === "inprogress") acts = `<button class="btn btn-p" data-go="completed">${UI.ic("check")} إغلاق البلاغ</button>`;
     } else {
       if (r.status === "new") acts = `<button class="btn btn-p" data-go="review">${UI.ic("check")} استلام الطلب</button>`;
-      if (r.status === "review") acts = `<button class="btn btn-p" data-go="approved">${UI.ic("check")} اعتماد${s.permit ? " وإصدار التصريح" : ""}</button><button class="btn btn-o" id="rejBtn" style="color:var(--red);border-color:#f0c2c2">${UI.ic("x")} رفض</button>`;
+      if (r.status === "review") acts = `<button class="btn btn-p" data-go="approved">${UI.ic("check")} اعتماد${s.permit ? " وإصدار التصريح" : ""}</button><button class="btn btn-o" id="rejBtn" style="color:var(--red)">${UI.ic("x")} اعتذار</button>`;
       if (r.status === "approved") acts = `<button class="btn btn-p" data-go="inprogress">${UI.ic("send")} بدء التنفيذ</button>`;
       if (r.status === "inprogress") acts = `<button class="btn btn-p" data-go="completed">${UI.ic("check")} إكمال الطلب</button>`;
     }
     const closed = ["completed", "rejected"].includes(r.status);
     const si = slaInfo(r);
+    const sugg = r.suggestedUnit || unitFor(s);
+    const unitOpts = sel => Object.entries(UNITS).filter(([k]) => k !== "coord").map(([k, u]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${u.ar}${k === sugg ? " (مقترح حسب الاختصاص)" : ""}</option>`).join("");
+
+    const rep = r.report;
+    const repHtml = rep ? `
+      <div class="report-card"><div class="rh"><b>${UI.ic("report")} تقرير التنفيذ</b><span style="display:flex;gap:6px">
+        <button class="btn btn-gold btn-sm" id="repPrint">${UI.ic("download")} تحميل التقرير</button><button class="btn btn-sm btn-o" style="background:#fff" id="repEdit">تعديل</button></span></div>
+        <div class="rb">
+          <div class="rep-grid"><div><span class="k">تاريخ التنفيذ</span><b>${esc(rep.date || "—")}</b></div><div><span class="k">الوقت</span><b class="num">${esc(rep.tfrom || "")} — ${esc(rep.tto || "")}</b></div>
+            <div><span class="k">عدد الأفراد</span><b class="num">${esc(rep.members || "—")}</b></div><div><span class="k">عدد الدوريات</span><b class="num">${esc(rep.patrols || "—")}</b></div></div>
+          <span class="k">قائد المهمة</span><p>${esc(rep.leader || "—")}</p>
+          <span class="k">ملخص التنفيذ</span><p>${esc(rep.summary || "—")}</p>
+          ${rep.remarks ? `<span class="k">الملاحظات</span><p>${esc(rep.remarks)}</p>` : ""}
+          ${rep.recs ? `<span class="k">التوصيات</span><p>${esc(rep.recs)}</p>` : ""}
+          ${rep.photos && rep.photos.length ? `<div class="gallery">${rep.photos.map(p => `<img src="${p}" alt="">`).join("")}</div>` : ""}
+          <div class="k" style="margin-top:8px">أعدّه: ${esc(rep.by)} · ${fmtDate(rep.at)}</div>
+        </div></div>` : (canReport(r) ? `<div class="box" style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+          <span>${UI.ic("report")} لم يُرفع تقرير التنفيذ لهذه المهمة بعد.</span><button class="btn btn-gold btn-sm" id="repNew">${UI.ic("report")} تعبئة تقرير التنفيذ</button></div>` : "");
 
     openModal(`
-      <div class="modal-h" ${r.urgent ? 'style="background:var(--red-l)"' : ""}><h3 ${r.urgent ? 'style="color:var(--red)"' : ""}>${UI.ic(CATEGORIES[s.cat].icon)} ${esc(s.ar)}</h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-h ${r.urgent ? "sos" : ""}"><h3>${UI.ic(CATEGORIES[s.cat].icon)}<span>${esc(s.ar)}<span class="sub">${esc(r.missionName)} · ${esc(CATEGORIES[s.cat].ar)}</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
       <div class="modal-b">
-        <div class="det-top"><div><div class="muted" style="font-size:12px">رقم الطلب</div><div class="ref">${esc(r.ref)}</div></div>
+        <div class="det-top"><div><div class="muted" style="font-size:12px">رقم الطلب</div><div class="ref">${esc(r.ref)}</div>
+          <span class="src-tag ${r.source === "direct" ? "direct" : ""}">${UI.ic(r.source === "direct" ? "alert" : "route")} ${esc((SOURCES[r.source] || SOURCES.mofa).ar)}</span></div>
           <div style="display:flex;gap:8px;align-items:center">${slaTag(r)} ${UI.statusBadge(r.status)}</div></div>
+        ${hasMap || photo ? `<div class="media2" ${!photo && !r.urgent ? 'style="grid-template-columns:1fr"' : ""}>
+          ${hasMap ? `<div class="mini-map" id="miniMap"></div>` : ""}
+          ${photo || r.urgent ? `<div class="photo">${photo ? `<img src="${photo}" alt="صورة البلاغ" id="sosPhoto">` : `<div class="none">${UI.ic("camera")}لم تُرفق صورة مع البلاغ</div>`}</div>` : ""}
+        </div>` : ""}
+        ${r.unit === "coord" ? `<div class="box route-box"><h4>${UI.ic("route")} توزيع الطلب — المنسق الرئيسي</h4>
+          <p class="muted" style="margin:0 0 10px;font-size:13px">ورد هذا الطلب من منصة وزارة الخارجية. اختر الجهة المختصة لتوجيهه إليها.</p>
+          <div class="act-row" style="margin:0"><select class="inp" id="routeSel">${unitOpts(sugg)}</select><button class="btn btn-p btn-sm" id="routeBtn">${UI.ic("send")} توزيع</button></div></div>` : ""}
         <div class="cols">
-          <div>
+          <div class="box">
+            <h4>${UI.ic("list")} بيانات الطلب</h4>
             <dl class="kv">
               <dt>البعثة</dt><dd>${esc(r.missionName)}</dd>
+              <dt>القنصل العام</dt><dd>${esc(m.consul || "—")}</dd>
               <dt>ضابط الاتصال</dt><dd>${esc(m.officer || "—")} · <span class="num" dir="ltr">${esc(m.phone || "")}</span></dd>
               <dt>تاريخ التقديم</dt><dd>${fmtDate(r.createdAt)}</dd>
               <dt>المهلة</dt><dd>${r.slaHours < 1 ? Math.round(r.slaHours * 60) + " دقيقة" : r.slaHours + " ساعة"} (حتى ${fmtDate(si.due)})</dd>
-              <dt>الجهة المختصة</dt><dd>${esc(UNITS[r.unit].ar)}</dd>
+              <dt>الجهة المختصة</dt><dd>${esc((UNITS[r.unit] || {}).ar || "")}</dd>
               ${rows}
               ${r.permitCode && r.status !== "rejected" ? `<dt>رمز التصريح</dt><dd class="num" dir="ltr" style="text-align:start;letter-spacing:.1em">${esc(r.permitCode)}</dd>` : ""}
-              ${r.rejectReason ? `<dt>سبب الرفض</dt><dd style="color:var(--red)">${esc(r.rejectReason)}</dd>` : ""}
-              ${r.rating ? `<dt>تقييم البعثة</dt><dd style="color:var(--gold)">${"★".repeat(r.rating)}<span style="color:#ddd">${"★".repeat(5 - r.rating)}</span> ${esc(r.ratingNote || "")}</dd>` : ""}
+              ${r.rejectReason ? `<dt>سبب الاعتذار</dt><dd style="color:var(--red)">${esc(r.rejectReason)}</dd>` : ""}
+              ${r.rating ? `<dt>تقييم البعثة</dt><dd style="color:var(--gold)">${"★".repeat(r.rating)}<span style="opacity:.25">${"★".repeat(5 - r.rating)}</span> ${esc(r.ratingNote || "")}</dd>` : ""}
             </dl>
-            ${r.location && r.location.lat != null ? `<div class="mini-map" id="miniMap"></div>` : r.location ? `<div class="chip" style="margin-top:10px">${UI.ic("map")} ${esc(r.location.label)}</div>` : ""}
           </div>
-          <div>
-            <h4 style="font-size:14px;margin-bottom:10px">سجل الطلب</h4>
+          <div class="box">
+            <h4>${UI.ic("clock")} سجل الطلب</h4>
             <ul class="hist">${notes}${hist}</ul>
           </div>
         </div>
-        ${!closed ? `<div class="act-box"><h4>الإجراء</h4>
+        ${!closed && r.unit !== "coord" ? `<div class="box act-box"><h4>${UI.ic("check")} الإجراء</h4>
           <div class="actions">${acts}</div>
-          <div class="act-row" id="rejRow" hidden><input class="inp" id="rejReason" placeholder="سبب الرفض (يظهر للبعثة)"><button class="btn btn-r btn-sm" id="rejGo">تأكيد الرفض</button></div>
-          <div class="act-row"><select class="inp" id="unitSel">${Object.entries(UNITS).map(([k, u]) => `<option value="${k}" ${k === r.unit ? "selected" : ""}>${u.ar}</option>`).join("")}</select><button class="btn btn-o btn-sm" id="fwdBtn">تحويل</button></div>
+          <div class="act-row" id="rejRow" hidden><input class="inp" id="rejReason" placeholder="سبب الاعتذار (يظهر للبعثة)"><button class="btn btn-r btn-sm" id="rejGo">تأكيد الاعتذار</button></div>
+          <div class="act-row"><select class="inp" id="unitSel">${unitOpts(r.unit)}</select><button class="btn btn-o btn-sm" id="fwdBtn">تحويل</button></div>
           <div class="act-row"><input class="inp" id="noteInp" placeholder="ملاحظة داخلية (لا تظهر للبعثة)"><button class="btn btn-o btn-sm" id="noteBtn">إضافة</button></div>
         </div>` : ""}
+        <div id="repZone">${repHtml}</div>
       </div>`);
     $("#modal").scrollTop = keepScroll;
+    UI.bindGallery($("#modal"));
+    const sp = $("#sosPhoto"); if (sp) sp.onclick = () => { const lb = document.createElement("div"); lb.className = "lightbox"; lb.innerHTML = `<img src="${sp.src}">`; lb.onclick = () => lb.remove(); document.body.appendChild(lb); };
 
-    if (r.location && r.location.lat != null && window.L) {
+    if (hasMap && window.L) {
       setTimeout(() => {
         if (!$("#miniMap")) return;
-        if (miniMap) miniMap.remove();
-        miniMap = L.map("miniMap", { zoomControl: false }).setView([r.location.lat, r.location.lng], 14);
-        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(miniMap);
-        L.marker([r.location.lat, r.location.lng]).addTo(miniMap);
+        miniMap = UI.map("miniMap", [r.location.lat, r.location.lng], 16);
+        L.marker([r.location.lat, r.location.lng]).addTo(miniMap).bindPopup(esc(r.location.label || r.missionName));
       }, 60);
     }
 
@@ -340,38 +378,134 @@
     };
     $("#modal").querySelectorAll("[data-go]").forEach(b => b.onclick = () => go(b.dataset.go));
     const rb = $("#rejBtn"); if (rb) rb.onclick = () => { $("#rejRow").hidden = false; $("#rejReason").focus(); };
-    const rg = $("#rejGo"); if (rg) rg.onclick = () => { const why = $("#rejReason").value.trim(); if (!why) { UI.toast("اكتب سبب الرفض", "warn"); return; } go("rejected", { rejectReason: why }, why); };
+    const rg = $("#rejGo"); if (rg) rg.onclick = () => { const why = $("#rejReason").value.trim(); if (!why) { UI.toast("يرجى كتابة سبب الاعتذار", "warn"); return; } go("rejected", { rejectReason: why }, why); };
+    const routeBtn = $("#routeBtn"); if (routeBtn) routeBtn.onclick = async () => {
+      const u = $("#routeSel").value, now = Date.now();
+      await Store.update(r.id, { unit: u, routedAt: now, updatedAt: now, history: r.history.concat([{ status: "new", at: now, by: officer + " (المنسق الرئيسي)", note: "وُجِّه إلى " + UNITS[u].ar }]) });
+      UI.toast("تم توزيع الطلب على " + UNITS[u].ar);
+    };
     const fb = $("#fwdBtn"); if (fb) fb.onclick = async () => {
       const u = $("#unitSel").value; if (u === r.unit) return;
-      await Store.update(r.id, { unit: u, updatedAt: Date.now(), notes: (r.notes || []).concat([{ text: "تم التحويل إلى " + UNITS[u].ar, at: Date.now(), by: officer }]) });
+      await Store.update(r.id, { unit: u, updatedAt: Date.now(), notes: (r.notes || []).concat([{ text: "حُوِّل إلى " + UNITS[u].ar, at: Date.now(), by: officer }]) });
       UI.toast("تم تحويل الطلب إلى " + UNITS[u].ar);
     };
     const nb = $("#noteBtn"); if (nb) nb.onclick = async () => {
       const tx = $("#noteInp").value.trim(); if (!tx) return;
       await Store.update(r.id, { notes: (r.notes || []).concat([{ text: tx, at: Date.now(), by: officer }]) });
     };
+    const rn = $("#repNew") || $("#repEdit"); if (rn) rn.onclick = () => reportForm(r);
+    const rp = $("#repPrint"); if (rp) rp.onclick = () => printReport(r);
+  }
+
+  /* ---------- تقرير التنفيذ ---------- */
+  function reportForm(r) {
+    repOpen = true;
+    const p = r.report || {}, photos = (p.photos || []).slice();
+    const today = new Date().toISOString().slice(0, 10);
+    const thumbs = () => photos.map((x, i) => `<span style="position:relative"><img class="thumb" src="${x}"><button type="button" class="x-btn" data-rm="${i}" style="position:absolute;top:-8px;inset-inline-end:-8px;width:22px;height:22px">${UI.ic("x")}</button></span>`).join("");
+    $("#repZone").innerHTML = `
+      <form class="box" id="repForm" style="margin-top:14px;border-color:var(--gold)"><h4>${UI.ic("report")} تقرير التنفيذ</h4>
+        <div class="grid2">
+          <div class="field"><label>تاريخ التنفيذ</label><input type="date" name="date" value="${esc(p.date || r.fields.date || today)}" required></div>
+          <div class="field"><label>قائد المهمة</label><input name="leader" value="${esc(p.leader || officer)}" required></div>
+          <div class="field"><label>وقت البدء</label><input type="time" name="tfrom" value="${esc(p.tfrom || "")}"></div>
+          <div class="field"><label>وقت الانتهاء</label><input type="time" name="tto" value="${esc(p.tto || "")}"></div>
+          <div class="field"><label>عدد الأفراد المشاركين</label><input type="number" min="0" name="members" value="${esc(p.members || "")}"></div>
+          <div class="field"><label>عدد الدوريات</label><input type="number" min="0" name="patrols" value="${esc(p.patrols || "")}"></div>
+          <div class="field full"><label>ملخص التنفيذ <span class="rq">*</span></label><textarea name="summary" required placeholder="وصف موجز لما نُفِّذ ونتائج المهمة">${esc(p.summary || "")}</textarea></div>
+          <div class="field full"><label>الملاحظات</label><textarea name="remarks">${esc(p.remarks || "")}</textarea></div>
+          <div class="field full"><label>التوصيات</label><textarea name="recs">${esc(p.recs || "")}</textarea></div>
+          <div class="field full"><label>صور المهمة (حتى 4 صور)</label>
+            <div class="ph-pick"><label class="btn btn-o btn-sm">${UI.ic("camera")} إضافة صور<input type="file" id="repPh" accept="image/*" multiple></label><span id="repThumbs" class="ph-pick">${thumbs()}</span></div></div>
+        </div>
+        <div class="actions" style="margin-top:12px;justify-content:flex-end"><button type="button" class="btn btn-o" id="repCancel">إلغاء</button><button class="btn btn-p">${UI.ic("check")} حفظ التقرير</button></div>
+      </form>`;
+    const redraw = () => { $("#repThumbs").innerHTML = thumbs(); $("#repThumbs").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { photos.splice(+b.dataset.rm, 1); redraw(); }); };
+    redraw();
+    $("#repForm").scrollIntoView({ behavior: "smooth", block: "start" });
+    $("#repPh").onchange = async e => {
+      for (const f of [...e.target.files]) { if (photos.length >= 4) break; try { photos.push(await UI.compressImage(f, 900, 0.55)); } catch (err) {} }
+      redraw();
+    };
+    $("#repCancel").onclick = () => { repOpen = false; openDetail(r.id); };
+    $("#repForm").onsubmit = async e => {
+      e.preventDefault();
+      const fd = new FormData(e.target), rep = { photos, by: officer, at: Date.now() };
+      ["date", "leader", "tfrom", "tto", "members", "patrols", "summary", "remarks", "recs"].forEach(k => rep[k] = (fd.get(k) || "").toString().trim());
+      try {
+        await Store.update(r.id, { report: rep, updatedAt: Date.now(), notes: (r.notes || []).concat([{ text: "رُفع تقرير التنفيذ", at: Date.now(), by: officer }]) });
+        repOpen = false; UI.toast("تم حفظ تقرير التنفيذ");
+        setTimeout(() => openDetail(r.id), 150);
+      } catch (err) { UI.toast("تعذّر الحفظ: " + err.message, "err"); }
+    };
+  }
+
+  // تقرير قابل للتحميل بالهوية المؤسسية (طباعة / حفظ PDF)
+  const toData = url => fetch(url).then(x => x.blob()).then(b => new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); })).catch(() => url);
+  async function printReport(r) {
+    const w = window.open("", "_blank");
+    if (!w) { UI.toast("يرجى السماح بالنوافذ المنبثقة لتحميل التقرير", "warn"); return; }
+    w.document.write('<p style="font-family:sans-serif;text-align:center;margin-top:40px">جارٍ إعداد التقرير…</p>');
+    const rep = r.report, s = svc(r.serviceId), m = MISSIONS[r.missionId] || {};
+    const dir = location.href.replace(/[^/]*$/, "") + "assets/img/";
+    const [lDp, lAcis, lGov] = await Promise.all(["logo-dubai-police.png", "logo-acis.png", "logo-gov-dubai.png"].map(n => toData(dir + n)));
+    const row = (k, v) => v ? `<tr><th>${k}</th><td>${esc(v)}</td></tr>` : "";
+    const fields = s.fields.filter(f => f.type !== "map").map(f => row(f.ar.replace(/\s*\(.*\)$/, ""), r.fields[f.k])).join("")
+      + (r.urgent ? row("نوع البلاغ", r.fields.type) + row("مكان البلاغ", r.location && r.location.label) + row("وصف البلاغ", r.fields.desc) : "");
+    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير تنفيذ — ${esc(r.ref)}</title>
+<style>
+@font-face{font-family:B;font-weight:400;src:local("29LT Bukra Regular"),local("29LT Bukra")}@font-face{font-family:B;font-weight:700;src:local("29LT Bukra Bold")}
+@page{size:A4;margin:14mm 12mm 18mm}*{box-sizing:border-box}body{font-family:B,"Dubai","Segoe UI",Tahoma,sans-serif;color:#1d2a24;margin:0;padding-bottom:34px;font-size:12.5px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ph img,.txt,table{break-inside:avoid}
+.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00492c;padding-bottom:10px}
+.hd .r{display:flex;align-items:center;gap:12px}.hd img{height:48px}.hd .sep{width:1.5px;height:42px;background:#018556}
+.hd .d b{display:block;font-size:14px}.hd .d small{font-size:8.5px;color:#5d6b64;font-weight:700}
+h1{font-size:19px;text-align:center;color:#00492c;margin:16px 0 2px}.sub{text-align:center;color:#5d6b64;margin-bottom:14px}
+.meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.meta div{border:1px solid #d6e3db;border-radius:8px;padding:6px 9px}.meta span{display:block;font-size:10.5px;color:#5d6b64}.meta b{font-size:12.5px}
+h2{font-size:13.5px;color:#fff;background:#00492c;padding:5px 12px;border-radius:6px;margin:14px 0 8px}
+table{width:100%;border-collapse:collapse}th,td{border:1px solid #d6e3db;padding:6px 9px;text-align:right;vertical-align:top}th{background:#f1f7f4;width:28%;font-weight:700}
+.txt{border:1px solid #d6e3db;border-radius:8px;padding:8px 11px;white-space:pre-line;margin-bottom:8px}.txt b{display:block;color:#00492c;font-size:11.5px}
+.ph{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.ph img{width:100%;height:190px;object-fit:cover;border-radius:8px;border:1.5px solid #cfa562}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:22px}.sign div{border-top:1px dashed #9db3a7;padding-top:6px;text-align:center;color:#5d6b64}
+.ft{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #00492c;padding-top:5px;display:flex;justify-content:space-between;font-size:10px;color:#5d6b64}
+.ft b{color:#00492c}
+@media screen{.ft{position:static;margin-top:22px}body{max-width:900px;margin:0 auto;padding:20px}}
+</style></head><body>
+<div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img src="${lAcis}" style="height:52px"><div class="d"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small><div style="font-size:11px;color:#018556;font-weight:700">قسم أمن الهيئات الدبلوماسية والمنشآت الهامة</div></div></div><img src="${lGov}"></div>
+<h1>تقرير تنفيذ مهمة — ${esc(s.ar)}</h1><div class="sub">${esc(r.missionName)}</div>
+<div class="meta"><div><span>رقم الطلب</span><b dir="ltr">${esc(r.ref)}</b></div><div><span>تاريخ التنفيذ</span><b>${esc(rep.date || "—")}</b></div><div><span>الوقت</span><b>${esc(rep.tfrom || "")} — ${esc(rep.tto || "")}</b></div><div><span>الجهة المختصة</span><b>${esc((UNITS[r.unit] || {}).ar || "")}</b></div></div>
+<h2>بيانات الطلب</h2><table>${row("البعثة", r.missionName)}${row("القنصل العام", m.consul)}${row("ضابط الاتصال", (m.officer || "") + " — " + (m.phone || ""))}${row("مصدر الطلب", (SOURCES[r.source] || SOURCES.mofa).ar)}${row("تاريخ التقديم", fmtDate(r.createdAt))}${fields}</table>
+<h2>تفاصيل التنفيذ</h2><table>${row("قائد المهمة", rep.leader)}${row("عدد الأفراد المشاركين", rep.members)}${row("عدد الدوريات", rep.patrols)}${row("حالة الطلب", STATUSES[r.status].ar)}</table>
+<div class="txt" style="margin-top:8px"><b>ملخص التنفيذ</b>${esc(rep.summary || "—")}</div>
+${rep.remarks ? `<div class="txt"><b>الملاحظات</b>${esc(rep.remarks)}</div>` : ""}${rep.recs ? `<div class="txt"><b>التوصيات</b>${esc(rep.recs)}</div>` : ""}
+${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph">${rep.photos.map(p => `<img src="${p}">`).join("")}</div>` : ""}
+<div class="sign"><div>أعدّه: ${esc(rep.by)}<br>${fmtDate(rep.at)}</div><div>اعتماد رئيس القسم</div></div>
+<div class="ft"><span>القيادة العامة لشرطة دبي — الإدارة العامة لأمن الهيئات والمنشآت والطوارئ</span><b>حراسة | تأمين | استجابة</b></div>
+<script>window.onload=()=>setTimeout(()=>print(),600)<\/script></body></html>`;
+    w.document.open(); w.document.write(html); w.document.close();
   }
 
   /* ---------- الخارطة ---------- */
   function renderMap() {
-    if (!window.L) { $("#bigMap").innerHTML = '<div class="empty">الخارطة تحتاج اتصال بالإنترنت.</div>'; return; }
-    if (!bigMap) {
-      bigMap = L.map("bigMap").setView([25.23, 55.30], 12);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" }).addTo(bigMap);
-      mapLayer = L.layerGroup().addTo(bigMap);
-    }
+    if (!window.L) { $("#bigMap").innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; return; }
+    if (!bigMap) { bigMap = UI.map("bigMap", [25.2, 55.29], 11); mapLayer = L.layerGroup().addTo(bigMap); }
     mapLayer.clearLayers();
     const pin = (color, u) => L.divIcon({ className: "", html: `<div class="pin ${u ? "u" : ""}" style="background:${color}"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] });
-    Object.entries(MISSIONS).forEach(([id, m]) => {
-      L.marker([m.lat, m.lng], { icon: pin("#00492c") }).addTo(mapLayer).bindPopup(`<b>${esc(m.ar)}</b><br>منشأة دبلوماسية مؤمنة`);
+    const fpin = (color, ic) => L.divIcon({ className: "", html: `<div class="fac-pin" style="background:${color}"><svg viewBox="0 0 24 24">${UI.icons[ic]}</svg></div>`, iconSize: [22, 22], iconAnchor: [11, 11] });
+    Object.values(MISSIONS).forEach(m => {
+      L.marker([m.cons.lat, m.cons.lng], { icon: fpin("#00492c", "building") }).addTo(mapLayer)
+        .bindPopup(`<b>${esc(m.ar)}</b><br>مقر منشأة مؤمن${m.res.same ? "<br>منزل القنصل داخل مبنى القنصلية" : ""}<br>القنصل العام: ${esc(m.consul)}`);
+      if (!m.res.same) L.marker([m.res.lat, m.res.lng], { icon: fpin("#0f766e", "house") }).addTo(mapLayer).bindPopup(`<b>منزل القنصل العام</b><br>${esc(m.ar)}<br>${esc(m.consul)}`);
     });
-    all.filter(r => r.location && r.location.lat != null && !["rejected"].includes(r.status)).forEach(r => {
+    FACILITIES.forEach(f => L.marker([f.lat, f.lng], { icon: fpin("#b98d47", f.type === "bank" ? "shield" : f.type === "landmark" ? "building" : "star") }).addTo(mapLayer)
+      .bindPopup(`<b>${esc(f.ar)}</b><br>${esc(FAC_TYPES[f.type])} — منشأة هامة`));
+    all.filter(r => r.location && r.location.lat != null && r.status !== "rejected").forEach(r => {
       const open = r.status !== "completed";
       const color = r.urgent && open ? "#c53030" : open ? "#d69e2e" : "#018556";
-      L.marker([r.location.lat, r.location.lng], { icon: pin(color, r.urgent && open) }).addTo(mapLayer)
-        .bindPopup(`<b>${esc(svc(r.serviceId).ar)}</b><br>${esc(r.missionName)}<br>${esc(r.ref)} · ${STATUSES[r.status].ar}`);
+      const mk = L.marker([r.location.lat, r.location.lng], { icon: pin(color, r.urgent && open), zIndexOffset: r.urgent ? 1000 : 0 }).addTo(mapLayer)
+        .bindPopup(`<b>${esc(svc(r.serviceId).ar)}</b><br>${esc(r.missionName)}<br>${esc(r.ref)} · ${STATUSES[r.status].ar}<br><a href="#" data-open="${r.id}">فتح الطلب</a>`);
+      mk.on("popupopen", e => { const a = e.popup.getElement().querySelector("[data-open]"); if (a) a.onclick = ev => { ev.preventDefault(); bigMap.closePopup(); openDetail(r.id); }; });
     });
-    $("#legend").innerHTML = [["#00492c", "مقر بعثة مؤمن"], ["#d69e2e", "طلب جاري"], ["#018556", "طلب مكتمل"], ["#c53030", "بلاغ طارئ"]].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("");
+    $("#legend").innerHTML = [["#00492c", "مقر المنشأة المؤمن"], ["#0f766e", "منزل القنصل"], ["#b98d47", "منشأة هامة"], ["#d69e2e", "طلب جارٍ"], ["#018556", "طلب مكتمل"], ["#c53030", "بلاغ طارئ"]].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("");
     bigMap.invalidateSize();
   }
 

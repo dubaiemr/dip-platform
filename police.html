@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="utf-8">
+<script>try{if(localStorage.getItem("dip-theme")==="dark")document.documentElement.dataset.theme="dark"}catch(e){}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>لوحة استلام طلبات الهيئات الدبلوماسية | شرطة دبي</title>
 <link rel="icon" href="assets/img/icons/police-64.png">
@@ -23,12 +24,12 @@
 <header class="brandbar">
   <div class="in">
     <div class="brand-right">
-      <img class="dp" src="assets/img/logo-dubai-police.png" alt="شرطة دبي">
+      <img class="dp light-only" src="assets/img/logo-dubai-police.png" alt="شرطة دبي"><img class="dp dark-only" src="assets/img/logo-dubai-police-white.png" alt="شرطة دبي">
       <span class="sep"></span>
       <img class="acis" src="assets/img/logo-acis.png" alt="ACIS">
       <div class="dept"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div>
     </div>
-    <div class="brand-left"><img src="assets/img/logo-gov-dubai.png" alt="حكومة دبي"></div>
+    <div class="brand-left"><img class="light-only" src="assets/img/logo-gov-dubai.png" alt="حكومة دبي"><img class="dark-only" src="assets/img/logo-gov-dubai-white.png" alt="حكومة دبي"></div>
   </div>
 </header>
 
@@ -80,6 +81,7 @@
       <div class="search"><svg class="ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" class="inp" placeholder="بحث برقم الطلب أو البعثة…"></div>
       <select id="fStatus" class="inp"><option value="">كل الحالات</option></select>
       <select id="fCat" class="inp"><option value="">كل الخدمات</option></select>
+      <select id="fUnit" class="inp"><option value="">كل الجهات</option></select>
       <label class="chk"><input type="checkbox" id="fOpen" checked> الطلبات المفتوحة فقط</label>
     </div>
     <div class="card" style="margin-top:14px;overflow:auto">

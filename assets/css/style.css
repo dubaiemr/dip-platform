@@ -216,3 +216,97 @@ html { background: #fff; }
 .appbar .act.notif:not(.on) { background: var(--gold); color: #1d2a24; border-color: var(--gold); animation: nudge 2s infinite; }
 @keyframes nudge { 50% { box-shadow: 0 0 0 5px rgba(207,165,98,.35); } }
 @media (max-width: 900px) { .appbar .act.notif span { display: none; } .appbar .who { flex-wrap: wrap; } }
+
+/* ============================================================
+   الوضع الداكن — أخضر شرطة دبي الداكن
+   ============================================================ */
+.dark-only { display: none !important; }
+:root[data-theme="dark"] .light-only { display: none !important; }
+:root[data-theme="dark"] .dark-only { display: block !important; }
+:root[data-theme="dark"] {
+  --ink: #e4efe8;
+  --muted: #93ab9e;
+  --line: #1b3a2c;
+  --bg: #03130c;
+  --card: #071f15;
+  --g50: #0b2a1d;
+  --g100: #0f3524;
+  --red-l: #3a1214;
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 28px rgba(0,0,0,.35);
+  color-scheme: dark;
+}
+:root[data-theme="dark"] html, :root[data-theme="dark"] body { background: var(--bg); }
+html[data-theme="dark"] { background: #03130c; }
+:root[data-theme="dark"] .brandbar { background: #021009; border-color: #12301f; }
+:root[data-theme="dark"] .brand-right .dept b { color: #f2f7f4; }
+:root[data-theme="dark"] .brand-right .dept small { color: #b9cdc2; }
+:root[data-theme="dark"] .brand-right .sep { background: var(--gold); }
+:root[data-theme="dark"] .appbar { background: linear-gradient(90deg, #00331f, #012818); border-bottom: 1px solid rgba(207,165,98,.25); }
+:root[data-theme="dark"] .appbar nav button.on { background: var(--gold); color: #04140d; }
+:root[data-theme="dark"] .mode-banner { background: #1d1806; color: #e9d48f; border-color: #3a300d; }
+:root[data-theme="dark"] .mode-banner.live { background: #082318; color: #9fd7b8; border-color: #12301f; }
+:root[data-theme="dark"] .inp, :root[data-theme="dark"] .field input, :root[data-theme="dark"] .field select, :root[data-theme="dark"] .field textarea { background: #04170f; border-color: #234434; color: var(--ink); }
+:root[data-theme="dark"] .btn-o { background: transparent; color: #cfe7d9; border-color: #2c5340; }
+:root[data-theme="dark"] .btn-o:hover { background: #0b2a1d; }
+:root[data-theme="dark"] .tbl th { background: #0a2419; }
+:root[data-theme="dark"] .tbl td { border-color: #11301f; }
+:root[data-theme="dark"] .tbl tr.urgent { background: #2a0d0f; }
+:root[data-theme="dark"] .foot { background: #010d07; border-top: 1px solid rgba(207,165,98,.25); }
+:root[data-theme="dark"] .x-btn { background: #0d2a1d; color: var(--ink); }
+:root[data-theme="dark"] .step .dot { background: #071f15; border-color: #2c5340; }
+:root[data-theme="dark"] .hist li::before { border-color: var(--card); }
+:root[data-theme="dark"] .login-wrap { background: radial-gradient(1200px 500px at 85% -10%, rgba(1,133,86,.18), transparent 60%), radial-gradient(900px 400px at 0% 110%, rgba(207,165,98,.10), transparent 60%); }
+:root[data-theme="dark"] .badge { background: color-mix(in srgb, var(--c) 22%, #071f15); border-color: color-mix(in srgb, var(--c) 45%, #071f15); color: color-mix(in srgb, var(--c) 55%, #fff); }
+:root[data-theme="dark"] .chip { background: #0b2a1d; color: #9fd7b8; }
+:root[data-theme="dark"] .chip.red { background: #3a1214; color: #ffb4b4; border-color: #5a1e21; }
+:root[data-theme="dark"] .toast { background: #0f3524; border: 1px solid rgba(207,165,98,.35); }
+.act.theme-btn { padding: 8px 10px; }
+
+/* ============================================================
+   النوافذ المنبثقة — إطار ذهبي وترتيب مؤسسي
+   ============================================================ */
+.overlay { z-index: 3000; background: rgba(0,25,15,.55); backdrop-filter: blur(4px); }
+.modal { z-index: 3001; border: 1.5px solid var(--gold); border-radius: 20px; background: var(--card);
+  box-shadow: 0 0 0 6px rgba(207,165,98,.14), 0 30px 80px rgba(0,0,0,.35); }
+.modal-h { background: linear-gradient(180deg, color-mix(in srgb, var(--gold) 12%, var(--card)), var(--card)); border-bottom: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); border-radius: 18px 18px 0 0; padding: 14px 20px; }
+.modal-h h3 { font-size: 17px; }
+.modal-h h3 > .ic { width: 34px; height: 34px; padding: 7px; border-radius: 10px; background: var(--g800); color: var(--gold-l); }
+.modal-h.sos { background: linear-gradient(180deg, color-mix(in srgb, var(--red) 16%, var(--card)), var(--card)); }
+.modal-h.sos h3 { color: var(--red); }
+.modal-h.sos h3 > .ic { background: var(--red); color: #fff; }
+.modal-h .sub { display: block; font-size: 11.5px; color: var(--muted); font-weight: 400; }
+.modal-b { padding: 18px 20px; }
+.modal-f { background: var(--card); border-top: 1px solid color-mix(in srgb, var(--gold) 35%, var(--line)); border-radius: 0 0 18px 18px; }
+.modal .box { background: var(--g50); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 14px; }
+.modal .box > h4 { font-size: 13.5px; margin-bottom: 10px; display: flex; gap: 8px; align-items: center; color: var(--g700); }
+:root[data-theme="dark"] .modal .box > h4 { color: var(--gold-l); }
+.modal .box > h4 .ic { width: 17px; height: 17px; }
+.modal .kv { font-size: 13.5px; }
+.modal-b::-webkit-scrollbar, .modal::-webkit-scrollbar { width: 8px; }
+.modal::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--gold) 50%, transparent); border-radius: 8px; }
+
+/* الخرائط لا تعلو النوافذ المنبثقة */
+.mapbox, .mini-map, #bigMap, .leaflet-container { isolation: isolate; z-index: 0; }
+.map-night { display: flex; gap: 6px; align-items: center; background: #fff; color: #1d2a24; border: 2px solid rgba(0,0,0,.2); border-radius: 8px; padding: 5px 10px; font: 700 12px var(--font); cursor: pointer; }
+.map-night .ic { width: 15px; height: 15px; }
+:root[data-theme="dark"] .map-night { background: #0b2a1d; color: var(--gold-l); border-color: #2c5340; }
+.leaflet-control-layers { font-family: var(--font); }
+
+/* معرض صور */
+.gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.gallery img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); cursor: zoom-in; }
+.ph-pick { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.ph-pick .thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--gold); }
+.ph-pick label.btn { cursor: pointer; }
+.ph-pick input[type=file] { display: none; }
+.lightbox { position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,.85); display: grid; place-items: center; padding: 20px; cursor: zoom-out; }
+.lightbox img { max-width: 100%; max-height: 100%; border-radius: 12px; border: 2px solid var(--gold); }
+
+/* شريط علوي مضغوط عند ازدحام العناصر */
+@media (max-width: 1480px) {
+  .appbar .title .tag { display: none; }
+  .appbar .act.notif span { display: none; }
+  .appbar .in { gap: 10px; }
+  .appbar nav button { padding: 8px 11px; }
+}
+@media (max-width: 1240px) { .appbar .who > span { display: none; } }
