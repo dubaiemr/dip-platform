@@ -434,6 +434,21 @@ window.UI = {
       }
     } catch (e) { console.warn("arabize", e); }
   },
+  /* أيقونات الخريطة (النموذج د): بلاطات مستديرة الزوايا بتدرج وإطار ذهبي */
+  MAPK: {
+    mission: { c: "#0e8f5e", l: "هيئة دبلوماسية", g: '<path d="M4 21V9l8-5 8 5v12M9 21v-6h6v6M3 21h18" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+    res:     { c: "#0ea5a4", l: "منزل قنصل", g: '<path d="M3 11l9-7 9 7M6 9.5V20h12V9.5" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+    fac:     { c: "#c9a24e", l: "منشأة هامة", g: '<path d="M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z" fill="#fff"/>' },
+    req:     { c: "#7c5cff", l: "طلب جارٍ", g: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 8v4.5l3 2" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>' },
+    done:    { c: "#64748b", l: "طلب مكتمل", g: '<path d="M6 12.5l4 4 8-9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+    sos:     { c: "#e53e3e", l: "بلاغ طارئ", g: '<path d="M12 4l9 16H3z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>' },
+    pick:    { c: "#e53e3e", l: "الموقع المحدد", g: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="10" r="2.4" fill="#fff"/>' }
+  },
+  tileSvg(k, px = 32) {
+    const d = this.MAPK[k] || this.MAPK.req, id = "g" + k + px;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="0 0 32 32"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${d.c}"/><stop offset="1" stop-color="${d.c}" stop-opacity=".72"/></linearGradient></defs><rect x="1.5" y="1.5" width="29" height="29" rx="9" fill="url(#${id})" stroke="${k === "sos" || k === "pick" ? "#fff" : "#f3dd8f"}" stroke-width="2"/><g transform="translate(6 6) scale(.83)">${d.g}</g></svg>`;
+  },
+  tileUrl(k) { return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(this.tileSvg(k, 64)); },
   /* إنشاء خارطة. يعيد كائناً مبسّطاً:
      marker(lat,lng,{draggable}) · onPick(cb) · point(lat,lng,opts) · clear() · goTo(lat,lng,z) · destroy() */
   async emap(el, center, zoom = 15) {
@@ -453,19 +468,25 @@ window.UI = {
     sw.dataset.b = "night"; paint(); view.ui.add(sw, "top-right");
     // بطاقة معلومات بسيطة
     const tip = document.createElement("div"); tip.className = "map-tip"; tip.hidden = true; host.appendChild(tip);
-    const sym = (o = {}) => ({ type: "simple-marker", style: o.shape || "circle", color: o.color || "#c53030", size: o.size || 13,
-      outline: { color: o.ring || "#ffffff", width: o.ringW || 2 } });
+    const sym = (o = {}) => { const z = o.size || 26; return { type: "picture-marker", url: UI.tileUrl(o.kind || "req"), width: z + "px", height: z + "px" }; };
+    // نبض أحمر للبلاغات الطارئة (طبقة HTML فوق الخارطة)
+    const pulses = [];
+    const placePulses = () => pulses.forEach(p => { const s = view.toScreen(p.pt); if (s) { p.el.style.left = s.x + "px"; p.el.style.top = s.y + "px"; } });
     let mk = null, pick = null, dragging = false;
     const api = {
       view, map,
       marker(lat, lng, o = {}) {
         if (mk) top.remove(mk);
-        mk = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(Object.assign({ color: "#e53e3e", size: 20, ringW: 3 }, o)), attributes: { _mk: 1 } });
+        mk = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(Object.assign({ kind: "pick", size: 30 }, o)), attributes: { _mk: 1 } });
         mk._drag = !!o.draggable; top.add(mk); return api;
       },
       onPick(cb) { pick = cb; return api; },
-      point(lat, lng, o = {}) { const g = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(o), attributes: { _i: 1 } }); g._o = o; pts.add(g); return g; },
-      clear() { pts.removeAll(); tip.hidden = true; },
+      point(lat, lng, o = {}) {
+        const g = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(o), attributes: { _i: 1 } }); g._o = o; pts.add(g);
+        if (o.pulse) { const el = document.createElement("div"); el.className = "map-pulse"; el.innerHTML = "<i></i><i></i>"; host.appendChild(el); pulses.push({ el, pt: g.geometry }); placePulses(); }
+        return g;
+      },
+      clear() { pts.removeAll(); tip.hidden = true; pulses.splice(0).forEach(p => p.el.remove()); },
       goTo(lat, lng, z) { view.goTo({ center: [lng, lat], zoom: z || view.zoom }, { duration: 600 }).catch(() => {}); },
       destroy() { try { view.destroy(); } catch (e) {} }
     };
@@ -493,7 +514,8 @@ window.UI = {
       const p = view.toMap(e); if (p) mk.geometry = p;
       if (e.action === "end") { dragging = false; if (pick && p) pick(p.latitude, p.longitude); }
     });
-    view.watch("extent", () => { tip.hidden = true; });
+    view.watch("extent", () => { tip.hidden = true; placePulses(); });
+    view.on("resize", () => setTimeout(placePulses, 50));
     await view.when();
     return api;
   },

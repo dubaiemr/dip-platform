@@ -82,6 +82,7 @@
 .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12.5px; }
 .legend span { display: inline-flex; gap: 6px; align-items: center; }
 .legend i { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+.legend svg { width: 20px; height: 20px; flex: none; }
 .pin { width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 1px 6px rgba(0,0,0,.35); }
 .pin.u { animation: ping 1.2s infinite; }
 @keyframes ping { 50% { box-shadow: 0 0 0 10px rgba(197,48,48,.25); } }

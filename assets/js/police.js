@@ -365,7 +365,9 @@
       UI.emap(host, [r.location.lat, r.location.lng], 16).then(mp => {
         if (!document.body.contains(host)) { mp.destroy(); return; }
         if (miniMap) miniMap.destroy();
-        miniMap = mp; mp.marker(r.location.lat, r.location.lng, { color: r.urgent ? "#e53e3e" : "#d69e2e" });
+        miniMap = mp;
+        if (r.urgent && !["completed", "rejected"].includes(r.status)) mp.point(r.location.lat, r.location.lng, { kind: "sos", size: 30, pulse: true });
+        else mp.marker(r.location.lat, r.location.lng, { kind: r.urgent ? "sos" : r.status === "completed" ? "done" : "req", size: 30 });
       }).catch(() => { host.innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; });
     }
 
@@ -494,17 +496,17 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
     }
     bigMap.clear();
     Object.values(MISSIONS).forEach(m => {
-      bigMap.point(m.cons.lat, m.cons.lng, { color: "#018556", shape: "square", size: 14, ring: "#cfa562",
-        html: `<b>${esc(m.ar)}</b><span>مقر المنشأة المؤمن${m.res.same ? " — منزل القنصل داخل المبنى" : ""}</span><span>القنصل العام: ${esc(m.consul)}</span>` });
-      if (!m.res.same) bigMap.point(m.res.lat, m.res.lng, { color: "#14b8a6", shape: "diamond", size: 14,
-        html: `<b>منزل القنصل العام</b><span>${esc(m.ar)}</span><span>${esc(m.consul)} (موقع افتراضي)</span>` });
+      bigMap.point(m.cons.lat, m.cons.lng, { kind: "mission",
+        html: `<b>${esc(m.ar)}</b><span>هيئة دبلوماسية${m.res.same ? " — منزل القنصل داخل المبنى" : ""}</span><span>القنصل العام: ${esc(m.consul)}</span>` });
+      if (!m.res.same) bigMap.point(m.res.lat, m.res.lng, { kind: "res",
+        html: `<b>منزل قنصل</b><span>${esc(m.ar)}</span><span>${esc(m.consul)} (موقع افتراضي)</span>` });
     });
-    FACILITIES.forEach(f => bigMap.point(f.lat, f.lng, { color: "#cfa562", shape: "triangle", size: 16, html: `<b>${esc(f.ar)}</b><span>${esc(FAC_TYPES[f.type])} — منشأة هامة</span>` }));
+    FACILITIES.forEach(f => bigMap.point(f.lat, f.lng, { kind: "fac", html: `<b>${esc(f.ar)}</b><span>${esc(FAC_TYPES[f.type])} — منشأة هامة</span>` }));
     all.filter(r => r.location && r.location.lat != null && r.status !== "rejected").forEach(r => {
       const open = r.status !== "completed", sos = r.urgent && open;
-      bigMap.point(r.location.lat, r.location.lng, { color: sos ? "#e53e3e" : open ? "#f6ad55" : "#48bb78", size: sos ? 20 : 12, ringW: sos ? 3 : 2, onClick: () => openDetail(r.id) });
+      bigMap.point(r.location.lat, r.location.lng, { kind: sos ? "sos" : open ? "req" : "done", size: sos ? 30 : 26, pulse: sos, onClick: () => openDetail(r.id) });
     });
-    $("#legend").innerHTML = [["#018556", "مقر المنشأة المؤمن"], ["#14b8a6", "منزل القنصل"], ["#cfa562", "منشأة هامة"], ["#f6ad55", "طلب جارٍ"], ["#48bb78", "طلب مكتمل"], ["#e53e3e", "بلاغ طارئ"]].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("");
+    $("#legend").innerHTML = ["mission", "res", "fac", "req", "done", "sos"].map(k => `<span>${UI.tileSvg(k, 20)}${UI.MAPK[k].l}</span>`).join("");
   }
 
   /* ---------- التحقق من التصريح ---------- */
