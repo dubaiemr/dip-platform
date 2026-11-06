@@ -39,6 +39,7 @@
       <button data-view="dash" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>المؤشرات</button>
       <button data-view="reqs"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>الطلبات <span class="cnt" id="newCnt"></span></button>
       <button data-view="map"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>الخارطة</button>
+      <button data-view="reports"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>التقارير <span class="cnt" id="repCnt"></span></button>
       <button data-view="verify"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg>التحقق من تصريح</button>
     </nav>
     <div class="who" id="who" hidden></div>
@@ -70,7 +71,7 @@
       <div class="card pad"><h3 class="ch">الطلبات حسب الحالة</h3><div id="byStatus"></div></div>
       <div class="card pad wide"><h3 class="ch">الطلبات اليومية</h3><div id="trend" class="trend"></div></div>
       <div class="card pad"><h3 class="ch">متوسط زمن الإنجاز مقابل المهلة</h3><div id="slaChart"></div></div>
-      <div class="card pad"><h3 class="ch">رضا الهيئات الدبلوماسية</h3><div id="sat"></div></div>
+      <div class="card pad"><h3 class="ch">رضا المتعاملين</h3><div id="sat"></div></div>
     </div>
   </section>
 
@@ -99,6 +100,14 @@
   </section>
 
   <!-- التحقق -->
+  <section id="v-reports" hidden>
+    <div class="sec-h" style="margin-top:0"><h2>تقارير التنفيذ</h2>
+      <div class="range" id="repTabs"><button data-r="done" class="on">التقارير المرفوعة</button><button data-r="need">بانتظار التقرير</button></div></div>
+    <div class="card" style="overflow:auto">
+      <table class="tbl"><thead id="repHead"></thead><tbody id="repRows"></tbody></table>
+    </div>
+  </section>
+
   <section id="v-verify" hidden>
     <div class="verify card pad">
       <div class="vi"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg></div>
