@@ -258,8 +258,8 @@
 
   /* ---------- تفاصيل الطلب والإجراءات ---------- */
   let miniMap = null;
-  function openModal(html) { if (miniMap) { miniMap.remove(); miniMap = null; } $("#modal").innerHTML = html; $("#modal").classList.add("open"); $("#ov").classList.add("open"); $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal); }
-  function closeModal() { $("#modal").classList.remove("open"); $("#ov").classList.remove("open"); openId = null; repOpen = false; if (miniMap) { miniMap.remove(); miniMap = null; } }
+  function openModal(html) { if (miniMap) { miniMap.destroy(); miniMap = null; } $("#modal").innerHTML = html; $("#modal").classList.add("open"); $("#ov").classList.add("open"); $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal); }
+  function closeModal() { $("#modal").classList.remove("open"); $("#ov").classList.remove("open"); openId = null; repOpen = false; if (miniMap) { miniMap.destroy(); miniMap = null; } }
   $("#ov").onclick = closeModal;
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
   let repOpen = false;
@@ -360,12 +360,13 @@
     UI.bindGallery($("#modal"));
     const sp = $("#sosPhoto"); if (sp) sp.onclick = () => { const lb = document.createElement("div"); lb.className = "lightbox"; lb.innerHTML = `<img src="${sp.src}">`; lb.onclick = () => lb.remove(); document.body.appendChild(lb); };
 
-    if (hasMap && window.L) {
-      setTimeout(() => {
-        if (!$("#miniMap")) return;
-        miniMap = UI.map("miniMap", [r.location.lat, r.location.lng], 16);
-        L.marker([r.location.lat, r.location.lng]).addTo(miniMap).bindPopup(esc(r.location.label || r.missionName));
-      }, 60);
+    if (hasMap) {
+      const host = $("#miniMap");
+      UI.emap(host, [r.location.lat, r.location.lng], 16).then(mp => {
+        if (!document.body.contains(host)) { mp.destroy(); return; }
+        if (miniMap) miniMap.destroy();
+        miniMap = mp; mp.marker(r.location.lat, r.location.lng, { color: r.urgent ? "#e53e3e" : "#d69e2e" });
+      }).catch(() => { host.innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; });
     }
 
     const go = async (status, extra = {}, note = "") => {
@@ -485,28 +486,25 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
   }
 
   /* ---------- الخارطة ---------- */
-  function renderMap() {
-    if (!window.L) { $("#bigMap").innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; return; }
-    if (!bigMap) { bigMap = UI.map("bigMap", [25.2, 55.29], 11); mapLayer = L.layerGroup().addTo(bigMap); }
-    mapLayer.clearLayers();
-    const pin = (color, u) => L.divIcon({ className: "", html: `<div class="pin ${u ? "u" : ""}" style="background:${color}"></div>`, iconSize: [16, 16], iconAnchor: [8, 8] });
-    const fpin = (color, ic) => L.divIcon({ className: "", html: `<div class="fac-pin" style="background:${color}"><svg viewBox="0 0 24 24">${UI.icons[ic]}</svg></div>`, iconSize: [22, 22], iconAnchor: [11, 11] });
+  let bigMapP = null;
+  async function renderMap() {
+    if (!bigMap) {
+      try { bigMap = await (bigMapP = bigMapP || UI.emap("bigMap", [25.2, 55.29], 11)); }
+      catch (e) { bigMapP = null; $("#bigMap").innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; return; }
+    }
+    bigMap.clear();
     Object.values(MISSIONS).forEach(m => {
-      L.marker([m.cons.lat, m.cons.lng], { icon: fpin("#00492c", "building") }).addTo(mapLayer)
-        .bindPopup(`<b>${esc(m.ar)}</b><br>مقر منشأة مؤمن${m.res.same ? "<br>منزل القنصل داخل مبنى القنصلية" : ""}<br>القنصل العام: ${esc(m.consul)}`);
-      if (!m.res.same) L.marker([m.res.lat, m.res.lng], { icon: fpin("#0f766e", "house") }).addTo(mapLayer).bindPopup(`<b>منزل القنصل العام</b><br>${esc(m.ar)}<br>${esc(m.consul)}`);
+      bigMap.point(m.cons.lat, m.cons.lng, { color: "#018556", shape: "square", size: 14, ring: "#cfa562",
+        html: `<b>${esc(m.ar)}</b><span>مقر المنشأة المؤمن${m.res.same ? " — منزل القنصل داخل المبنى" : ""}</span><span>القنصل العام: ${esc(m.consul)}</span>` });
+      if (!m.res.same) bigMap.point(m.res.lat, m.res.lng, { color: "#14b8a6", shape: "diamond", size: 14,
+        html: `<b>منزل القنصل العام</b><span>${esc(m.ar)}</span><span>${esc(m.consul)} (موقع افتراضي)</span>` });
     });
-    FACILITIES.forEach(f => L.marker([f.lat, f.lng], { icon: fpin("#b98d47", f.type === "bank" ? "shield" : f.type === "landmark" ? "building" : "star") }).addTo(mapLayer)
-      .bindPopup(`<b>${esc(f.ar)}</b><br>${esc(FAC_TYPES[f.type])} — منشأة هامة`));
+    FACILITIES.forEach(f => bigMap.point(f.lat, f.lng, { color: "#cfa562", shape: "triangle", size: 16, html: `<b>${esc(f.ar)}</b><span>${esc(FAC_TYPES[f.type])} — منشأة هامة</span>` }));
     all.filter(r => r.location && r.location.lat != null && r.status !== "rejected").forEach(r => {
-      const open = r.status !== "completed";
-      const color = r.urgent && open ? "#c53030" : open ? "#d69e2e" : "#018556";
-      const mk = L.marker([r.location.lat, r.location.lng], { icon: pin(color, r.urgent && open), zIndexOffset: r.urgent ? 1000 : 0 }).addTo(mapLayer)
-        .bindPopup(`<b>${esc(svc(r.serviceId).ar)}</b><br>${esc(r.missionName)}<br>${esc(r.ref)} · ${STATUSES[r.status].ar}<br><a href="#" data-open="${r.id}">فتح الطلب</a>`);
-      mk.on("popupopen", e => { const a = e.popup.getElement().querySelector("[data-open]"); if (a) a.onclick = ev => { ev.preventDefault(); bigMap.closePopup(); openDetail(r.id); }; });
+      const open = r.status !== "completed", sos = r.urgent && open;
+      bigMap.point(r.location.lat, r.location.lng, { color: sos ? "#e53e3e" : open ? "#f6ad55" : "#48bb78", size: sos ? 20 : 12, ringW: sos ? 3 : 2, onClick: () => openDetail(r.id) });
     });
-    $("#legend").innerHTML = [["#00492c", "مقر المنشأة المؤمن"], ["#0f766e", "منزل القنصل"], ["#b98d47", "منشأة هامة"], ["#d69e2e", "طلب جارٍ"], ["#018556", "طلب مكتمل"], ["#c53030", "بلاغ طارئ"]].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("");
-    bigMap.invalidateSize();
+    $("#legend").innerHTML = [["#018556", "مقر المنشأة المؤمن"], ["#14b8a6", "منزل القنصل"], ["#cfa562", "منشأة هامة"], ["#f6ad55", "طلب جارٍ"], ["#48bb78", "طلب مكتمل"], ["#e53e3e", "بلاغ طارئ"]].map(([c, l]) => `<span><i style="background:${c}"></i>${l}</span>`).join("");
   }
 
   /* ---------- التحقق من التصريح ---------- */

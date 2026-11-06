@@ -310,3 +310,11 @@ html[data-theme="dark"] { background: #03130c; }
   .appbar nav button { padding: 8px 11px; }
 }
 @media (max-width: 1240px) { .appbar .who > span { display: none; } }
+
+/* خرائط Esri */
+.mapbox, .mini-map, #bigMap { position: relative; background: #1a1f2b; }
+.map-tip { position: absolute; z-index: 5; transform: translate(-50%, calc(-100% - 14px)); background: #0b1a14; color: #f2f7f4; border: 1px solid var(--gold); border-radius: 10px; padding: 8px 12px; font-size: 12.5px; line-height: 1.6; min-width: 180px; max-width: 260px; box-shadow: 0 8px 24px rgba(0,0,0,.4); pointer-events: none; text-align: start; }
+.map-tip b { display: block; color: var(--gold-l); font-size: 13px; }
+.map-tip span { display: block; color: #cfe2d7; }
+.esri-view .esri-ui .map-night { box-shadow: 0 1px 4px rgba(0,0,0,.4); }
+.esri-attribution { font-size: 10px !important; }

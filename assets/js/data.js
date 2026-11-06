@@ -132,18 +132,20 @@
      cons = موقع القنصلية، res = منزل القنصل (same = داخل مبنى القنصلية) */
   const M = (ar, en, consul, officer, phone, natDay, cons, res) => ({ ar, en, consul, officer, phone, natDay, type: "قنصلية عامة",
     lat: cons[0], lng: cons[1], cons: { lat: cons[0], lng: cons[1] }, res: res ? { lat: res[0], lng: res[1], same: false } : { lat: cons[0], lng: cons[1], same: true } });
+  // أسماء القنصليات حقيقية ومواقعها تقريبية · أسماء القناصل ومواقع المنازل المستقلة افتراضية
   const MISSIONS = {
-    m1:  M("القنصلية العامة لجمهورية ألفا", "Consulate General of the Republic of Alpha", "السيد/ ماركوس فيلدر", "السيد/ يوناس بيرغ", "04 000 1101", "11-20", [25.2422, 55.3046]),
-    m2:  M("القنصلية العامة لمملكة بيتا", "Consulate General of the Kingdom of Beta", "السيدة/ إيلينا روسي", "السيد/ توماس كلاين", "04 000 1102", "12-14", [25.2339, 55.3092]),
-    m3:  M("القنصلية العامة لجمهورية غاما", "Consulate General of the Republic of Gamma", "السيد/ رافاييل مونتيرو", "السيدة/ صوفيا لاريا", "04 000 1103", "03-08", [25.2168, 55.2612]),
-    m4:  M("القنصلية العامة لاتحاد دلتا", "Consulate General of the Delta Federation", "السيد/ كينجي ساتو", "السيد/ أوليفر هانت", "04 000 1104", "07-01", [25.2618, 55.3224]),
-    m5:  M("القنصلية العامة لجمهورية إبسيلون", "Consulate General of the Republic of Epsilon", "السيدة/ آنا كوفاتش", "السيد/ ميلان نوفاك", "04 000 1105", "05-25", [25.1985, 55.2795]),
-    m6:  M("القنصلية العامة لمملكة زيتا", "Consulate General of the Kingdom of Zeta", "السيد/ لوكاس فيرمير", "السيدة/ إيما ديكر", "04 000 1106", "09-02", [25.2489, 55.2988]),
-    m7:  M("القنصلية العامة لجمهورية إيتا", "Consulate General of the Republic of Eta", "السيد/ داميان كروز", "السيد/ بابلو ريفيرا", "04 000 1107", "10-12", [25.2265, 55.2735], [25.1418, 55.2205]),
-    m8:  M("القنصلية العامة لدولة ثيتا", "Consulate General of the State of Theta", "السيدة/ نورا ليندكفيست", "السيد/ إريك سوندبرغ", "04 000 1108", "06-06", [25.2702, 55.3361], [25.2186, 55.4152]),
-    m9:  M("القنصلية العامة لجمهورية كابا", "Consulate General of the Republic of Kappa", "السيد/ أدريان بوبيسكو", "السيدة/ إيوانا مارين", "04 000 1109", "12-01", [25.1893, 55.2631], [25.0712, 55.1684]),
-    m10: M("القنصلية العامة لاتحاد لامدا", "Consulate General of the Lambda Union", "السيد/ هنري دوبوا", "السيدة/ كلارا موريه", "04 000 1110", "11-28", [25.2534, 55.3128], [25.1123, 55.2018])
+    m1:  M("القنصلية العامة للولايات المتحدة الأمريكية", "Consulate General of the United States of America", "السيد/ ماركوس فيلدر", "السيد/ يوناس بيرغ", "04 000 1101", "07-04", [25.2572, 55.3118]),
+    m2:  M("السفارة البريطانية — مكتب دبي", "British Embassy — Dubai Office", "السيدة/ إيلينا روسي", "السيد/ توماس كلاين", "04 000 1102", "06-14", [25.2594, 55.3126]),
+    m3:  M("القنصلية العامة لجمهورية الهند", "Consulate General of India", "السيد/ رافاييل مونتيرو", "السيدة/ صوفيا لاريا", "04 000 1103", "08-15", [25.2551, 55.3147]),
+    m4:  M("القنصلية العامة لجمهورية باكستان الإسلامية", "Consulate General of Pakistan", "السيد/ كينجي ساتو", "السيد/ أوليفر هانت", "04 000 1104", "03-23", [25.2407, 55.3152]),
+    m5:  M("القنصلية العامة للمملكة العربية السعودية", "Consulate General of the Kingdom of Saudi Arabia", "السيدة/ آنا كوفاتش", "السيد/ ميلان نوفاك", "04 000 1105", "09-23", [25.2486, 55.3116]),
+    m6:  M("القنصلية العامة لجمهورية الصين الشعبية", "Consulate General of the People's Republic of China", "السيد/ لوكاس فيرمير", "السيدة/ إيما ديكر", "04 000 1106", "10-01", [25.2431, 55.3172]),
+    m7:  M("القنصلية العامة لجمهورية فرنسا", "Consulate General of France", "السيد/ داميان كروز", "السيد/ بابلو ريفيرا", "04 000 1107", "07-14", [25.1866, 55.2652], [25.1418, 55.2205]),
+    m8:  M("القنصلية العامة لروسيا الاتحادية", "Consulate General of the Russian Federation", "السيدة/ نورا ليندكفيست", "السيد/ إريك سوندبرغ", "04 000 1108", "06-12", [25.2382, 55.3091], [25.2186, 55.4152]),
+    m9:  M("القنصلية العامة لليابان", "Consulate General of Japan", "السيد/ أدريان بوبيسكو", "السيدة/ إيوانا مارين", "04 000 1109", "02-23", [25.2262, 55.2869], [25.0712, 55.1684]),
+    m10: M("القنصلية العامة لجمهورية ألمانيا الاتحادية", "Consulate General of the Federal Republic of Germany", "السيد/ هنري دوبوا", "السيدة/ كلارا موريه", "04 000 1110", "10-03", [25.2213, 55.2588], [25.1123, 55.2018])
   };
+
 
   /* ---------- منشآت هامة (مواقع تقريبية للتشغيل التجريبي) ---------- */
   const FACILITIES = [
@@ -234,7 +236,7 @@
     };
     const L = (m, k = "cons") => ({ lat: MISSIONS[m][k].lat, lng: MISSIONS[m][k].lng, label: k === "res" ? "منزل القنصل" : "مقر القنصلية" });
     return [
-      mk("m1", "s2", 3, "new", { event: "احتفال اليوم الوطني", date: "2026-11-20", tfrom: "19:00", tto: "23:00", guests: "350", vip: "نعم", notes: "حضور القنصل العام وعدد من رؤساء البعثات" }, { location: L("m1"), unit: "coord" }),
+      mk("m1", "s2", 3, "new", { event: "حفل استقبال رسمي", date: "2026-11-20", tfrom: "19:00", tto: "23:00", guests: "350", vip: "نعم", notes: "حضور القنصل العام وعدد من رؤساء البعثات" }, { location: L("m1"), unit: "coord" }),
       mk("m5", "a2", 1.5, "new", { guest: "وزير الخارجية", flight: "EK 0003", date: "2026-11-09", time: "08:40", count: "4" }, { unit: "coord" }),
       mk("m2", "a1", 7, "review", { delegation: "وفد وزارة التجارة", flight: "EK 0000", date: "2026-11-09", time: "14:30", terminal: "المبنى 3", count: "6" }),
       mk("m3", "s3", 20, "approved", { area: "منطقة الميناء — البوابة 4", date: "2026-11-07", persons: "ماريا لوبيز\nخوان بيريز", plate: "دبلوماسي 1234", purpose: "زيارة سفينة ترفع علم الدولة" }),
@@ -266,8 +268,8 @@
     _write(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {} this._emit(); },
     _emit() { const l = this._read() || []; this._subs.forEach(fn => fn(l)); },
     async init() {
-      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v2", "1"); } catch (e) {} }
-      else { try { if (!localStorage.getItem("dip-seed-v2")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v2", "1"); } } catch (e) {} }
+      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v3", "1"); } catch (e) {} }
+      else { try { if (!localStorage.getItem("dip-seed-v3")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v3", "1"); } } catch (e) {} }
       window.addEventListener("storage", e => { if (e.key === LS_KEY) this._emit(); });
     },
     subscribe(fn) { this._subs.push(fn); fn(this._read() || []); return () => { this._subs = this._subs.filter(f => f !== fn); }; },
@@ -398,34 +400,102 @@ window.UI = {
       fr.onerror = rej; fr.readAsDataURL(file);
     });
   },
-  /* خارطة موحدة: شوارع / شوارع Esri / Esri ليلاً / صور فضائية + زر الوضع الليلي */
-  map(el, center, zoom, opts = {}) {
-    const esri = p => `https://server.arcgisonline.com/ArcGIS/rest/services/${p}/MapServer/tile/{z}/{y}/{x}`;
-    const A = "Tiles © Esri";
-    const day = L.tileLayer(esri("World_Street_Map"), { maxZoom: 19, attribution: A });
-    const night = L.layerGroup([L.tileLayer(esri("Canvas/World_Dark_Gray_Base"), { maxNativeZoom: 16, maxZoom: 19, attribution: A }),
-                                L.tileLayer(esri("Canvas/World_Dark_Gray_Reference"), { maxNativeZoom: 16, maxZoom: 19 })]);
-    const osm = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 19, attribution: "© OpenStreetMap" });
-    const sat = L.layerGroup([L.tileLayer(esri("World_Imagery"), { maxZoom: 19, attribution: A }),
-                              L.tileLayer(esri("Reference/World_Boundaries_and_Places"), { maxZoom: 19 })]);
-    const m = L.map(el, Object.assign({ zoomControl: true }, opts)).setView(center, zoom);
-    const isDark = () => document.documentElement.dataset.theme === "dark";
-    let cur = isDark() ? night : day; cur.addTo(m);
-    const set = l => { if (cur === l) return; m.removeLayer(cur); cur = l; cur.addTo(m); btn && btn.update(); };
-    L.control.layers({ "شوارع Esri": day, "Esri ليلاً": night, "صور فضائية": sat, "OpenStreetMap": osm }, null, { position: "topleft" }).addTo(m);
-    m.on("baselayerchange", e => { cur = e.layer; btn && btn.update(); });
-    // زر سريع: ليلي / نهاري
-    const Btn = L.Control.extend({ options: { position: "topright" }, onAdd() {
-      const d = L.DomUtil.create("button", "map-night"); d.type = "button";
-      L.DomEvent.disableClickPropagation(d);
-      d.onclick = () => set(cur === night ? day : night);
-      this.update = () => { d.innerHTML = (cur === night ? UI.ic("sun") + "نهاري" : UI.ic("moon") + "ليلي"); };
-      this.update(); return d; } });
-    const btn = new Btn(); btn.addTo(m);
-    const onTheme = () => { try { set(isDark() ? night : day); } catch (e) {} };
-    document.addEventListener("themechange", onTheme);
-    m.on("unload", () => document.removeEventListener("themechange", onTheme));
-    return m;
+  /* ============================================================
+     خرائط Esri (ArcGIS JS 4.30): «الشوارع ليلاً» + «أقمار صناعية»، بأسماء عربية
+     ============================================================ */
+  _esri: null,
+  esri() {
+    if (this._esri) return this._esri;
+    this._esri = new Promise((res, rej) => {
+      const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://js.arcgis.com/4.30/esri/themes/dark/main.css"; document.head.appendChild(css);
+      const go = () => window.require(["esri/Map", "esri/views/MapView", "esri/Graphic", "esri/layers/GraphicsLayer", "esri/config", "esri/intl"],
+        (Map, MapView, Graphic, GraphicsLayer, config, intl) => { try { intl.setLocale("ar"); } catch (e) {} res({ Map, MapView, Graphic, GraphicsLayer }); }, rej);
+      if (window.require && window.require.on) return go();
+      const sc = document.createElement("script"); sc.src = "https://js.arcgis.com/4.30/"; sc.onload = go; sc.onerror = () => rej(new Error("تعذّر تحميل الخارطة")); document.head.appendChild(sc);
+    });
+    return this._esri;
+  },
+  // تعريب أسماء الشوارع والمناطق وإخفاء لوحات أرقام الطرق
+  async _arabize(map) {
+    try {
+      await map.basemap.load();
+      const layers = [...map.basemap.baseLayers.toArray(), ...map.basemap.referenceLayers.toArray()].filter(l => l.type === "vector-tile");
+      for (const l of layers) {
+        await l.load(); const st = l.currentStyleInfo && l.currentStyleInfo.style; if (!st) continue;
+        for (const sl of st.layers) {
+          const ic = sl.layout && sl.layout["icon-image"];
+          if (sl.type === "symbol" && ic && /shield|route|highway|motorway|road/i.test(sl.id + " " + JSON.stringify(ic))) {
+            const cur = l.getStyleLayer(sl.id); if (cur && (cur.layout.visibility || "visible") !== "none") { cur.layout.visibility = "none"; l.setStyleLayer(cur); } continue;
+          }
+          const tf = sl.layout && sl.layout["text-field"]; if (typeof tf !== "string" || !/\{_name/.test(tf)) continue;
+          const want = tf.replace(/\{_name(_global|_en)?\}/g, "{_name_ar}");
+          const cur = l.getStyleLayer(sl.id); if (cur && cur.layout["text-field"] !== want) { cur.layout["text-field"] = want; l.setStyleLayer(cur); }
+        }
+      }
+    } catch (e) { console.warn("arabize", e); }
+  },
+  /* إنشاء خارطة. يعيد كائناً مبسّطاً:
+     marker(lat,lng,{draggable}) · onPick(cb) · point(lat,lng,opts) · clear() · goTo(lat,lng,z) · destroy() */
+  async emap(el, center, zoom = 15) {
+    const E = await this.esri();
+    const host = typeof el === "string" ? document.getElementById(el) : el;
+    if (!host) throw new Error("no map host");
+    const map = new E.Map({ basemap: "streets-night-vector" });
+    const pts = new E.GraphicsLayer(), top = new E.GraphicsLayer();
+    map.addMany([pts, top]);
+    const view = new E.MapView({ container: host, map, center: [center[1], center[0]], zoom, popupEnabled: false,
+      ui: { components: ["zoom", "attribution"] }, constraints: { snapToZoom: false } });
+    this._arabize(map);
+    // زر التبديل: الشوارع ليلاً / أقمار صناعية
+    const sw = document.createElement("button"); sw.type = "button"; sw.className = "map-night";
+    const paint = () => { sw.innerHTML = map.basemap.id === "hybrid" || map.basemap.title === "hybrid" || sw.dataset.b === "hybrid" ? this.ic("map") + "الشوارع ليلاً" : this.ic("globe") + "أقمار صناعية"; };
+    sw.onclick = () => { const toSat = sw.dataset.b !== "hybrid"; sw.dataset.b = toSat ? "hybrid" : "night"; map.basemap = toSat ? "hybrid" : "streets-night-vector"; paint(); this._arabize(map); };
+    sw.dataset.b = "night"; paint(); view.ui.add(sw, "top-right");
+    // بطاقة معلومات بسيطة
+    const tip = document.createElement("div"); tip.className = "map-tip"; tip.hidden = true; host.appendChild(tip);
+    const sym = (o = {}) => ({ type: "simple-marker", style: o.shape || "circle", color: o.color || "#c53030", size: o.size || 13,
+      outline: { color: o.ring || "#ffffff", width: o.ringW || 2 } });
+    let mk = null, pick = null, dragging = false;
+    const api = {
+      view, map,
+      marker(lat, lng, o = {}) {
+        if (mk) top.remove(mk);
+        mk = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(Object.assign({ color: "#e53e3e", size: 20, ringW: 3 }, o)), attributes: { _mk: 1 } });
+        mk._drag = !!o.draggable; top.add(mk); return api;
+      },
+      onPick(cb) { pick = cb; return api; },
+      point(lat, lng, o = {}) { const g = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(o), attributes: { _i: 1 } }); g._o = o; pts.add(g); return g; },
+      clear() { pts.removeAll(); tip.hidden = true; },
+      goTo(lat, lng, z) { view.goTo({ center: [lng, lat], zoom: z || view.zoom }, { duration: 600 }).catch(() => {}); },
+      destroy() { try { view.destroy(); } catch (e) {} }
+    };
+    view.on("click", async e => {
+      const h = await view.hitTest(e, { include: [pts] });
+      const g = h.results.find(r => r.graphic && r.graphic._o);
+      if (g) {
+        const o = g.graphic._o;
+        if (o.onClick) { o.onClick(); return; }
+        if (o.html) { const p = view.toScreen(g.graphic.geometry); tip.innerHTML = o.html; tip.style.left = p.x + "px"; tip.style.top = p.y + "px"; tip.hidden = false; }
+        return;
+      }
+      tip.hidden = true;
+      if (pick) { const p = e.mapPoint; api.marker(p.latitude, p.longitude, { draggable: mk && mk._drag }); pick(p.latitude, p.longitude); }
+    });
+    // سحب العلامة
+    view.on("pointer-down", async e => {
+      if (!mk || !mk._drag) return;
+      const h = await view.hitTest(e, { include: [top] });
+      dragging = h.results.some(r => r.graphic === mk);
+    });
+    view.on("drag", e => {
+      if (!dragging) return;
+      e.stopPropagation();
+      const p = view.toMap(e); if (p) mk.geometry = p;
+      if (e.action === "end") { dragging = false; if (pick && p) pick(p.latitude, p.longitude); }
+    });
+    view.watch("extent", () => { tip.hidden = true; });
+    await view.when();
+    return api;
   },
   // تكبير الصور عند الضغط
   bindGallery(root) {

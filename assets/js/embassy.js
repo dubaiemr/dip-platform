@@ -326,8 +326,8 @@
 
   /* ---------- النافذة المنبثقة ---------- */
   let map = null;
-  function openModal(html) { $("#modal").innerHTML = html; $("#modal").classList.add("open"); $("#ov").classList.add("open"); $("#modal").scrollTop = 0; }
-  function closeModal() { $("#modal").classList.remove("open"); $("#ov").classList.remove("open"); if (map) { map.remove(); map = null; } }
+  function openModal(html) { if (map) { map.destroy(); map = null; } $("#modal").innerHTML = html; $("#modal").classList.add("open"); $("#ov").classList.add("open"); $("#modal").scrollTop = 0; }
+  function closeModal() { $("#modal").classList.remove("open"); $("#ov").classList.remove("open"); if (map) { map.destroy(); map = null; } }
   $("#ov").onclick = closeModal;
   document.addEventListener("keydown", e => { if (e.key === "Escape") closeModal(); });
 
@@ -358,19 +358,19 @@
       </form>`);
     $("#modal").querySelectorAll("[data-close]").forEach(b => b.onclick = closeModal);
 
-    if (s.fields.some(f => f.type === "map") && window.L) {
-      setTimeout(() => {
-        map = UI.map("fMap", [m.lat, m.lng], 13);
-        let mk = null;
-        map.on("click", e => {
-          loc = { lat: +e.latlng.lat.toFixed(5), lng: +e.latlng.lng.toFixed(5), label: "" };
-          if (mk) mk.setLatLng(e.latlng); else mk = L.marker(e.latlng).addTo(map);
+    if (s.fields.some(f => f.type === "map")) {
+      UI.emap("fMap", [m.lat, m.lng], 14).then(mp => {
+        if (!$("#fMap")) { mp.destroy(); return; }
+        map = mp;
+        mp.onPick((lat, lng) => {
+          loc = { lat: +lat.toFixed(5), lng: +lng.toFixed(5), label: "" };
           $("#mapNote").innerHTML = `${UI.ic("check")} <span class="num" dir="ltr">${loc.lat}, ${loc.lng}</span>`;
         });
-      }, 60);
-    } else if (s.fields.some(f => f.type === "map")) {
-      $("#fMap").outerHTML = `<input name="locText" class="inp" required placeholder="${t("address")}">`;
-      $("#mapNote").remove();
+      }).catch(() => {
+        const el = $("#fMap"); if (!el) return;
+        el.outerHTML = `<input name="locText" class="inp" required placeholder="${t("address")}">`;
+        const n = $("#mapNote"); if (n) n.remove();
+      });
     }
 
     $("#reqForm").onsubmit = async e => {
@@ -450,7 +450,7 @@
   /* ---------- البلاغ الطارئ: مكان البلاغ + خارطة قابلة للتعديل + صورة ---------- */
   $("#sosBtn").onclick = () => {
     const m = MISSIONS[missionId];
-    let where = "cons", loc = { lat: m.cons.lat, lng: m.cons.lng, label: T.ar.consAddr }, photo = null, mk = null, geo = null;
+    let where = "cons", loc = { lat: m.cons.lat, lng: m.cons.lng, label: T.ar.consAddr }, photo = null;
     const opt = (v, ic, l, sub) => `<label><input type="radio" name="where" value="${v}" ${v === "cons" ? "checked" : ""}><span class="ico">${UI.ic(ic)}</span><span><b>${l}</b>${sub ? `<small>${sub}</small>` : ""}</span></label>`;
     openModal(`
       <div class="modal-h sos"><h3>${UI.ic("alert")}<span>${t("emT")}<span class="sub">${t("sosSub")}</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
@@ -472,11 +472,16 @@
     const showLoc = () => { const el = $("#emLoc"); if (el) el.innerHTML = `${UI.ic("map")} <span class="num" dir="ltr">${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</span> — ${t("emDrag")}`; };
     const place = (lat, lng) => {
       loc = { lat: +lat.toFixed(6), lng: +lng.toFixed(6), label: label() };
-      if (map) { if (mk) mk.setLatLng([lat, lng]); else { mk = L.marker([lat, lng], { draggable: true }).addTo(map); mk.on("dragend", e => { const p = e.target.getLatLng(); loc.lat = +p.lat.toFixed(6); loc.lng = +p.lng.toFixed(6); showLoc(); }); } map.setView([lat, lng], 16); }
+      if (map) { map.marker(lat, lng, { draggable: true }); map.goTo(lat, lng, 17); }
       showLoc();
     };
-    if (window.L) setTimeout(() => { map = UI.map("emMap", [m.cons.lat, m.cons.lng], 16); map.on("click", e => place(e.latlng.lat, e.latlng.lng)); place(m.cons.lat, m.cons.lng); }, 60);
-    else { $("#emMap").remove(); showLoc(); }
+    place(m.cons.lat, m.cons.lng);
+    UI.emap("emMap", [m.cons.lat, m.cons.lng], 17).then(mp => {
+      if (!$("#emMap")) { mp.destroy(); return; }
+      map = mp;
+      mp.onPick((lat, lng) => { loc.lat = +lat.toFixed(6); loc.lng = +lng.toFixed(6); showLoc(); });
+      place(loc.lat, loc.lng);
+    }).catch(() => { const el = $("#emMap"); if (el) el.remove(); showLoc(); });
     $("#modal").querySelectorAll('input[name="where"]').forEach(r => r.onchange = () => {
       where = r.value;
       if (where === "cons") place(m.cons.lat, m.cons.lng);
