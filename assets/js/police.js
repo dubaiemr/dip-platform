@@ -510,7 +510,10 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
         html: `<b>منزل قنصل</b><span>${esc(m.ar)}</span><span>${esc(m.consul)} (موقع افتراضي)</span>` });
     });
     FACILITIES.forEach(f => bigMap.point(f.lat, f.lng, { kind: "fac", html: `<b>${esc(f.ar)}</b><span>${esc(FAC_TYPES[f.type])} — منشأة هامة</span>` }));
-    all.filter(r => r.location && r.location.lat != null && r.status !== "rejected").forEach(r => {
+    // ترتيب الرسم: المكتمل أولاً ثم الجاري ثم الطارئ، والأحدث فوق الأقدم
+    const rank = r => r.status === "completed" ? 0 : r.urgent ? 2 : 1;
+    all.filter(r => r.location && r.location.lat != null && r.status !== "rejected")
+      .sort((x, y) => rank(x) - rank(y) || (x.createdAt || 0) - (y.createdAt || 0)).forEach(r => {
       const open = r.status !== "completed", sos = r.urgent && open;
       bigMap.point(r.location.lat, r.location.lng, { kind: sos ? "sos" : open ? "req" : "done", size: sos ? 30 : 26, pulse: sos, onClick: () => openDetail(r.id) });
     });
