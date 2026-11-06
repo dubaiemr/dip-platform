@@ -491,7 +491,7 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
   let bigMapP = null;
   async function renderMap() {
     if (!bigMap) {
-      try { bigMap = await (bigMapP = bigMapP || UI.emap("bigMap", [25.2, 55.29], 11)); }
+      try { bigMap = await (bigMapP = bigMapP || UI.emap("bigMap", [25.243, 55.302], 13)); }
       catch (e) { bigMapP = null; $("#bigMap").innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; return; }
     }
     bigMap.clear();

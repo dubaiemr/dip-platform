@@ -134,24 +134,24 @@
     lat: cons[0], lng: cons[1], cons: { lat: cons[0], lng: cons[1] }, res: res ? { lat: res[0], lng: res[1], same: false } : { lat: cons[0], lng: cons[1], same: true } });
   // أسماء القنصليات حقيقية ومواقعها تقريبية · أسماء القناصل ومواقع المنازل المستقلة افتراضية
   const MISSIONS = {
-    m1:  M("القنصلية العامة للولايات المتحدة الأمريكية", "Consulate General of the United States of America", "السيد/ ماركوس فيلدر", "السيد/ يوناس بيرغ", "04 000 1101", "07-04", [25.2572, 55.3118]),
-    m2:  M("السفارة البريطانية — مكتب دبي", "British Embassy — Dubai Office", "السيدة/ إيلينا روسي", "السيد/ توماس كلاين", "04 000 1102", "06-14", [25.2594, 55.3126]),
-    m3:  M("القنصلية العامة لجمهورية الهند", "Consulate General of India", "السيد/ رافاييل مونتيرو", "السيدة/ صوفيا لاريا", "04 000 1103", "08-15", [25.2551, 55.3147]),
-    m4:  M("القنصلية العامة لجمهورية باكستان الإسلامية", "Consulate General of Pakistan", "السيد/ كينجي ساتو", "السيد/ أوليفر هانت", "04 000 1104", "03-23", [25.2407, 55.3152]),
-    m5:  M("القنصلية العامة للمملكة العربية السعودية", "Consulate General of the Kingdom of Saudi Arabia", "السيدة/ آنا كوفاتش", "السيد/ ميلان نوفاك", "04 000 1105", "09-23", [25.2486, 55.3116]),
-    m6:  M("القنصلية العامة لجمهورية الصين الشعبية", "Consulate General of the People's Republic of China", "السيد/ لوكاس فيرمير", "السيدة/ إيما ديكر", "04 000 1106", "10-01", [25.2431, 55.3172]),
-    m7:  M("القنصلية العامة لجمهورية فرنسا", "Consulate General of France", "السيد/ داميان كروز", "السيد/ بابلو ريفيرا", "04 000 1107", "07-14", [25.1866, 55.2652], [25.1418, 55.2205]),
-    m8:  M("القنصلية العامة لروسيا الاتحادية", "Consulate General of the Russian Federation", "السيدة/ نورا ليندكفيست", "السيد/ إريك سوندبرغ", "04 000 1108", "06-12", [25.2382, 55.3091], [25.2186, 55.4152]),
-    m9:  M("القنصلية العامة لليابان", "Consulate General of Japan", "السيد/ أدريان بوبيسكو", "السيدة/ إيوانا مارين", "04 000 1109", "02-23", [25.2262, 55.2869], [25.0712, 55.1684]),
-    m10: M("القنصلية العامة لجمهورية ألمانيا الاتحادية", "Consulate General of the Federal Republic of Germany", "السيد/ هنري دوبوا", "السيدة/ كلارا موريه", "04 000 1110", "10-03", [25.2213, 55.2588], [25.1123, 55.2018])
+    m1:  M("القنصلية العامة للولايات المتحدة الأمريكية", "Consulate General of the United States of America", "السيد/ ماركوس فيلدر", "السيد/ يوناس بيرغ", "04 000 1101", "07-04", [25.2493, 55.3083]),
+    m2:  M("السفارة البريطانية — مكتب دبي", "British Embassy — Dubai Office", "السيدة/ إيلينا روسي", "السيد/ توماس كلاين", "04 000 1102", "06-14", [25.2525, 55.2955]),
+    m3:  M("القنصلية العامة لجمهورية الهند", "Consulate General of India", "السيد/ رافاييل مونتيرو", "السيدة/ صوفيا لاريا", "04 000 1103", "08-15", [25.2445, 55.303]),
+    m4:  M("القنصلية العامة لجمهورية باكستان الإسلامية", "Consulate General of Pakistan", "السيد/ كينجي ساتو", "السيد/ أوليفر هانت", "04 000 1104", "03-23", [25.2386, 55.3122]),
+    m5:  M("القنصلية العامة للمملكة العربية السعودية", "Consulate General of the Kingdom of Saudi Arabia", "السيدة/ آنا كوفاتش", "السيد/ ميلان نوفاك", "04 000 1105", "09-23", [25.2465, 55.3165]),
+    m6:  M("القنصلية العامة لجمهورية الصين الشعبية", "Consulate General of the People's Republic of China", "السيد/ لوكاس فيرمير", "السيدة/ إيما ديكر", "04 000 1106", "10-01", [25.2298, 55.3195]),
+    m7:  M("القنصلية العامة لجمهورية فرنسا", "Consulate General of France", "السيد/ داميان كروز", "السيد/ بابلو ريفيرا", "04 000 1107", "07-14", [25.1865, 55.2745], [25.1418, 55.2205]),
+    m8:  M("القنصلية العامة لروسيا الاتحادية", "Consulate General of the Russian Federation", "السيدة/ نورا ليندكفيست", "السيد/ إريك سوندبرغ", "04 000 1108", "06-12", [25.2412, 55.2915], [25.2186, 55.4152]),
+    m9:  M("القنصلية العامة لليابان", "Consulate General of Japan", "السيد/ أدريان بوبيسكو", "السيدة/ إيوانا مارين", "04 000 1109", "02-23", [25.2195, 55.281], [25.0712, 55.1684]),
+    m10: M("القنصلية العامة لجمهورية ألمانيا الاتحادية", "Consulate General of the Federal Republic of Germany", "السيد/ هنري دوبوا", "السيدة/ كلارا موريه", "04 000 1110", "10-03", [25.229, 55.2675], [25.1123, 55.2018])
   };
 
 
   /* ---------- منشآت هامة (مواقع تقريبية للتشغيل التجريبي) ---------- */
   const FACILITIES = [
-    { id: "f1", ar: "كنيسة — منطقة عود ميثاء", type: "church", lat: 25.2336, lng: 55.3134 },
-    { id: "f2", ar: "كنيسة — مجمع دور العبادة بجبل علي", type: "church", lat: 25.0041, lng: 55.1084 },
-    { id: "f3", ar: "المعبد الهندوسي — جبل علي", type: "temple", lat: 25.0049, lng: 55.1061 },
+    { id: "f1", ar: "كنيسة — منطقة عود ميثاء", type: "church", lat: 25.2345, lng: 55.3065 },
+    { id: "f2", ar: "كنيسة — مجمع دور العبادة بجبل علي", type: "church", lat: 25.002, lng: 55.111 },
+    { id: "f3", ar: "المعبد الهندوسي — جبل علي", type: "temple", lat: 25.008, lng: 55.103 },
     { id: "f4", ar: "المعبد الهندوسي — بر دبي", type: "temple", lat: 25.2633, lng: 55.2972 },
     { id: "f5", ar: "مركز دبي التجاري العالمي", type: "landmark", lat: 25.2253, lng: 55.2856 },
     { id: "f6", ar: "مصرف الإمارات المركزي — فرع دبي", type: "bank", lat: 25.2586, lng: 55.3027 }
@@ -268,8 +268,8 @@
     _write(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {} this._emit(); },
     _emit() { const l = this._read() || []; this._subs.forEach(fn => fn(l)); },
     async init() {
-      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v3", "1"); } catch (e) {} }
-      else { try { if (!localStorage.getItem("dip-seed-v3")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v3", "1"); } } catch (e) {} }
+      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v4", "1"); } catch (e) {} }
+      else { try { if (!localStorage.getItem("dip-seed-v4")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v4", "1"); } } catch (e) {} }
       window.addEventListener("storage", e => { if (e.key === LS_KEY) this._emit(); });
     },
     subscribe(fn) { this._subs.push(fn); fn(this._read() || []); return () => { this._subs = this._subs.filter(f => f !== fn); }; },
