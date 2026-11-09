@@ -220,7 +220,7 @@
       const idx = FLOW.indexOf(status);
       const steps = status === "rejected" ? ["review", "rejected"] : FLOW.slice(1, idx + 1);
       let t = created;
-      if (!urgent && r.unit !== "coord") { t += 0.05 * s.sla * HOUR; r.history.push({ status: "new", at: t, by: "المنسق الرئيسي", note: "وُجِّه إلى " + UNITS[r.unit].ar }); }
+      if (!urgent && r.unit !== "coord") { t += 0.05 * s.sla * HOUR; r.history.push({ status: "new", at: t, by: "المنسق الرئيسي", note: "وُجِّه إلى " + UNITS[r.unit].ar }); r.routedAt = t; }
       steps.forEach(st => {
         t += (extra.speed || 0.45) * s.sla * HOUR / steps.length;
         r.history.push({ status: st, at: Math.min(t, now - 60e3), by: "ضابط المناوبة", note: st === "rejected" ? "يتطلب الطلب مخاطبة رسمية عبر وزارة الخارجية." : "" });
@@ -258,7 +258,7 @@
   /* ============================================================
      طبقة الحفظ — محلي
      ============================================================ */
-  const LS_KEY = "dip-platform-requests-v1", SITES_KEY = "dip-sites-v1";
+  const LS_KEY = "dip-platform-requests-v1", SITES_KEY = "dip-sites-v1", BC_KEY = "dip-broadcasts-v1";
   const LocalStore = {
     mode: "local", picker: true,
     _subs: [],
@@ -266,15 +266,15 @@
     _write(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {} this._emit(); },
     _emit() { const l = this._read() || []; this._subs.forEach(fn => fn(l)); },
     async init() {
-      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v5", "1"); } catch (e) {} }
-      else { try { if (!localStorage.getItem("dip-seed-v5")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v5", "1"); } } catch (e) {} }
+      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v6", "1"); } catch (e) {} }
+      else { try { if (!localStorage.getItem("dip-seed-v6")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v6", "1"); } } catch (e) {} }
       window.addEventListener("storage", e => { if (e.key === LS_KEY) this._emit(); });
     },
     subscribe(fn) { this._subs.push(fn); fn(this._read() || []); return () => { this._subs = this._subs.filter(f => f !== fn); }; },
     async add(r) { const l = this._read() || []; r.id = "r-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6); l.push(r); this._write(l); return r; },
     async update(id, patch) { const l = this._read() || []; const i = l.findIndex(x => x.id === id); if (i > -1) { l[i] = Object.assign({}, l[i], patch); this._write(l); } },
     async reset() { this._write(seedRequests()); },
-    async clear() { this._write([]); },
+    async clear() { this._write([]); try { localStorage.removeItem(BC_KEY); } catch (e) {} this._bcEmit(); },
     async seed() { const l = this._read() || []; this._write(l.concat(seedRequests())); },
     // تسجيل الدخول في الوضع المحلي = اختيار الحساب فقط
     async signIn(id) { return { id }; },
@@ -290,7 +290,20 @@
     subscribeSites(fn) { this._siteSubs.push(fn); fn(this._sitesRead());
       if (!this._sitesBound) { this._sitesBound = true; window.addEventListener("storage", e => { if (e.key === SITES_KEY) { const l = this._sitesRead(); this._siteSubs.forEach(f => f(l)); } }); }
       return () => { this._siteSubs = this._siteSubs.filter(f => f !== fn); }; },
-    async saveSites(list) { try { localStorage.setItem(SITES_KEY, JSON.stringify(list)); localStorage.setItem(SITES_KEY + "-ver", SITES_VER); } catch (e) {} this._siteSubs.forEach(f => f(list)); }
+    async saveSites(list) { try { localStorage.setItem(SITES_KEY, JSON.stringify(list)); localStorage.setItem(SITES_KEY + "-ver", SITES_VER); } catch (e) {} this._siteSubs.forEach(f => f(list)); },
+    // التعاميم وطلبات الطمأنة
+    _bcRead() { try { return JSON.parse(localStorage.getItem(BC_KEY) || "[]"); } catch (e) { return []; } },
+    _bcSubs: [],
+    _bcEmit() { const l = this._bcRead(); this._bcSubs.forEach(f => f(l)); },
+    subscribeBroadcasts(fn) { this._bcSubs.push(fn); fn(this._bcRead());
+      if (!this._bcBound) { this._bcBound = true; window.addEventListener("storage", e => { if (e.key === BC_KEY) this._bcEmit(); }); }
+      return () => { this._bcSubs = this._bcSubs.filter(f => f !== fn); }; },
+    async addBroadcast(b) { const l = this._bcRead(); l.push(b); localStorage.setItem(BC_KEY, JSON.stringify(l)); this._bcEmit(); },
+    async setBroadcastField(id, path, value) {
+      const l = this._bcRead(), b = l.find(x => x.id === id); if (!b) return;
+      let o = b; path.slice(0, -1).forEach(k => { o = o[k] = o[k] || {}; }); o[path[path.length - 1]] = value;
+      localStorage.setItem(BC_KEY, JSON.stringify(l)); this._bcEmit();
+    }
   };
 
   /* ============================================================
@@ -329,7 +342,7 @@
     async seed() { const b = this.db.batch(); seedRequests().forEach(r => { const id = r.id; delete r.id; b.set(this.db.collection("requests").doc(id), r); }); await b.commit(); },
     async clear() {
       const snap = await this.db.collection("requests").get();
-      for (let i = 0; i < snap.docs.length; i += 400) { const b = this.db.batch(); snap.docs.slice(i, i + 400).forEach(d => { if (d.id[0] !== "_") b.delete(d.ref); }); await b.commit(); }
+      for (let i = 0; i < snap.docs.length; i += 400) { const b = this.db.batch(); snap.docs.slice(i, i + 400).forEach(d => { if (d.id !== "_sites") b.delete(d.ref); }); await b.commit(); }
     },
     async signIn(email, pass) { if (this.picker) return { id: email }; return this.auth.signInWithEmailAndPassword(email, pass); },
     async signOut() { if (!this.picker) return this.auth.signOut(); },
@@ -343,7 +356,14 @@
         fn(list);
       }, err => { console.error(err); window.UI && UI.toast("تعذر تحميل كشف المواقع: " + err.message, "err"); });
     },
-    async saveSites(list) { await this._sitesDoc().set({ list: JSON.parse(JSON.stringify(list)), ver: SITES_VER, updatedAt: Date.now() }); }
+    async saveSites(list) { await this._sitesDoc().set({ list: JSON.parse(JSON.stringify(list)), ver: SITES_VER, updatedAt: Date.now() }); },
+    // التعاميم وطلبات الطمأنة: مستندات بمعرّف يبدأ بـ _bc_ داخل مجموعة الطلبات
+    subscribeBroadcasts(fn) {
+      return this.db.collection("requests").where("kind", "==", "bc").onSnapshot(snap => fn(snap.docs.map(d => Object.assign({}, d.data(), { id: d.id }))),
+        err => console.error("broadcasts", err));
+    },
+    async addBroadcast(b) { await this.db.collection("requests").doc(b.id).set(JSON.parse(JSON.stringify(b))); },
+    async setBroadcastField(id, path, value) { await this.db.collection("requests").doc(id).update(new firebase.firestore.FieldPath(...path), value); }
   };
 
   const cfg = (window.APP_CONFIG && window.APP_CONFIG.firebase) || {};
@@ -463,6 +483,9 @@ window.UI = {
     req:     { c: "#7c5cff", l: "طلب جارٍ", g: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 8v4.5l3 2" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>' },
     done:    { c: "#64748b", l: "طلب مكتمل", g: '<path d="M6 12.5l4 4 8-9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
     sos:     { c: "#e53e3e", l: "بلاغ طارئ", g: '<path d="M12 4l9 16H3z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>' },
+    safe:    { c: "#16a34a", l: "بخير", g: '<path d="M6 12.5l4 4 8-9" stroke="#fff" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>' },
+    help:    { c: "#e53e3e", l: "تحتاج مساعدة", g: '<path d="M12 4l9 16H3z" fill="none" stroke="#fff" stroke-width="2.2" stroke-linejoin="round"/><path d="M12 10v4M12 17v.5" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>' },
+    wait:    { c: "#8a94a6", l: "لم ترد بعد", g: '<circle cx="12" cy="12" r="7.5" fill="none" stroke="#fff" stroke-width="2"/><path d="M12 8v4.5l3 2" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round"/>' },
     pick:    { c: "#e53e3e", l: "الموقع المحدد", g: '<path d="M12 21s-6.5-6-6.5-11a6.5 6.5 0 0 1 13 0c0 5-6.5 11-6.5 11z" fill="none" stroke="#fff" stroke-width="2.2"/><circle cx="12" cy="10" r="2.4" fill="#fff"/>' }
   },
   tileSvg(k, px = 32) {

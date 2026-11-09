@@ -53,7 +53,8 @@
       detectNew();
       render();
     });
-    Store.subscribeSites(list => { sites = list; if (view === "map") renderMap(); });
+    Store.subscribeSites(list => { sites = list; if (view === "map") renderMap(); if (view === "comm") renderComm(); });
+    Store.subscribeBroadcasts(onBroadcasts);
     setInterval(() => { if (view === "reqs") renderRows(); renderSos(); }, 30e3);
   }
   // نافذة تأكيد داخلية بدل confirm()
@@ -140,7 +141,7 @@
   function show(v) {
     view = v;
     document.querySelectorAll("#nav button").forEach(b => b.classList.toggle("on", b.dataset.view === v));
-    ["dash", "reqs", "map", "reports", "verify"].forEach(x => $("#v-" + x).hidden = x !== v);
+    ["dash", "reqs", "map", "comm", "reports", "verify"].forEach(x => $("#v-" + x).hidden = x !== v);
     render();
     if (v === "map") setTimeout(renderMap, 50);
   }
@@ -154,6 +155,7 @@
     if (view === "dash") renderDash();
     if (view === "reqs") renderRows();
     if (view === "reports") renderReports();
+    if (view === "comm") renderComm();
     if (view === "map" && bigMap) renderMap();
     const nr = needReport().length; $("#repCnt").textContent = nr; $("#repCnt").classList.toggle("show", nr > 0);
     if (openId) { const r = all.find(x => x.id === openId); if (r && $("#modal").classList.contains("open")) openDetail(openId, true); }
@@ -168,7 +170,7 @@
     const b = $("#sosOpen"); if (b) b.onclick = () => openDetail(open[0].id);
   }
 
-  /* ---------- المؤشرات ---------- */
+  /* ---------- الإحصائيات ---------- */
   document.querySelectorAll("#range button").forEach(b => b.onclick = () => {
     rangeDays = +b.dataset.d; document.querySelectorAll("#range button").forEach(x => x.classList.toggle("on", x === b)); renderDash();
   });
@@ -200,6 +202,7 @@
       k("qr", "تصاريح رقمية صادرة", permits, "قابلة للتحقق بـ QR") +
       k("alert", "بلاغات طارئة", sos, "خلال الفترة");
 
+    renderSaved(L);
     // حسب نوع الخدمة
     const cats = Object.entries(CATEGORIES).map(([id, c]) => ({ l: c.ar, n: L.filter(r => r.category === id).length, c: id === "emergency" ? "#c53030" : null }));
     const mx = Math.max(1, ...cats.map(c => c.n));
@@ -683,6 +686,310 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
       $("#impGo").disabled = true;
       try { await saveSites(list); closeModal(); UI.toast(`تمت إضافة ${nAdd} وتحديث ${nUp} موقع`); } catch (e) { $("#impGo").disabled = false; }
     };
+  }
+
+  /* =========================================================
+     التواصل مع البعثات: «طمّنا» والتعاميم الأمنية
+     ========================================================= */
+  let bcs = [], bcPrev = null, chkMap = null, chkMapP = null, chkMapFor = "";
+  const bcTargets = b => BC.targets(b, sites);
+  const activeChecks = () => bcs.filter(b => b.type === "check" && b.status === "active").sort((a, b) => b.createdAt - a.createdAt);
+  const resp = (b, id) => (b.responses || {})[id];
+
+  function onBroadcasts(list) {
+    // تنبيه فوري عند طلب مساعدة جديد
+    if (bcPrev) list.forEach(b => {
+      if (b.type !== "check") return;
+      const old = (bcPrev.find(x => x.id === b.id) || {}).responses || {};
+      Object.entries(b.responses || {}).forEach(([mid, r]) => {
+        if (r.state === "help" && (!old[mid] || old[mid].state !== "help")) {
+          const nmx = (DIP.SITE[mid] || {}).name || mid;
+          UI.toast(`طلب مساعدة: ${nmx}${r.note ? " — " + r.note : ""}`, "err"); UI.beep && UI.beep();
+          Alerts.show && Alerts.show("طلب مساعدة من بعثة دبلوماسية", { body: nmx + (r.note ? "\n" + r.note : ""), tag: "help-" + b.id + mid, requireInteraction: true, icon: "assets/img/icons/police-sos.png", badge: "assets/img/icons/badge-96.png" });
+        }
+      });
+    });
+    bcPrev = list; bcs = list;
+    const helpN = activeChecks().reduce((n, b) => n + Object.values(b.responses || {}).filter(r => r.state === "help").length, 0);
+    $("#commCnt").textContent = helpN; $("#commCnt").classList.toggle("show", helpN > 0);
+    if (view === "comm") renderComm();
+  }
+
+  function renderComm() {
+    const act = activeChecks()[0];
+    if (!act) {
+      $("#chkLive").innerHTML = `<div class="card pad chk-idle">${UI.ic("check")}<div><b>لا يوجد طلب طمأنة نشط</b><span class="muted">عند حالة جوية أو حدث كبير، اضغط «طمّنا» لتسأل جميع البعثات عن حالها دفعة واحدة، وتتابع الردود على الخارطة لحظة بلحظة.</span></div></div>`;
+      $("#chkMapWrap").hidden = true;
+    } else {
+      const T = bcTargets(act), R = T.map(s0 => ({ s: s0, r: resp(act, s0.id) }));
+      const help = R.filter(x => x.r && x.r.state === "help"), safe = R.filter(x => x.r && x.r.state === "safe"), none = R.filter(x => !x.r);
+      const pct = T.length ? Math.round((help.length + safe.length) / T.length * 100) : 0;
+      const row = x => `<div class="site-row ${x.r && x.r.state === "help" ? "err" : ""}"><img src="${UI.flagSrc(x.s.code)}" alt=""><div><b>${esc(x.s.name)}</b><small>${x.r ? (x.r.state === "help" ? "تحتاج مساعدة" : "بخير") + " · " + fmtDate(x.r.at) + (x.r.note ? " · " + esc(x.r.note) : "") : esc(x.s.area || "")}</small></div></div>`;
+      $("#chkLive").innerHTML = `<div class="card pad chk-live">
+        <div class="chk-h"><div><span class="live-dot"></span><b>طلب طمأنة نشط</b> <span class="muted">${esc(BC.REASON_AR[act.reason] || "")}</span><div class="muted" style="font-size:12.5px">أُرسل ${fmtDate(act.createdAt)} · ${esc(act.by || "")}${act.msg ? " · " + esc(act.msg) : ""}</div></div>
+          <button class="btn btn-o btn-sm" id="chkClose">إنهاء طلب الطمأنة</button></div>
+        <div class="chk-nums"><div><b class="num">${T.length}</b>بعثة مستهدفة</div><div class="ok"><b class="num">${safe.length}</b>بخير</div><div class="bad"><b class="num">${help.length}</b>تحتاج مساعدة</div><div class="wt"><b class="num">${none.length}</b>لم ترد بعد</div></div>
+        <div class="bar chk-bar"><i style="width:${pct}%"></i></div><div class="muted" style="font-size:12.5px;margin-top:4px">نسبة الرد ${pct}%</div>
+        ${help.length ? `<h4 class="imp-h" style="color:var(--red)">تحتاج مساعدة</h4><div class="site-list">${help.map(row).join("")}</div>` : ""}
+        <details class="chk-d"><summary>لم ترد بعد (${none.length})</summary><div class="site-list">${none.map(row).join("")}</div></details>
+        <details class="chk-d"><summary>بخير (${safe.length})</summary><div class="site-list">${safe.map(row).join("")}</div></details>
+      </div>`;
+      $("#chkClose").onclick = () => confirmBox("إنهاء طلب الطمأنة", "سيُغلق الطلب ويُحفظ في السجل، ولن يظهر للبعثات بعد ذلك.", "إنهاء", async () => {
+        await Store.setBroadcastField(act.id, ["status"], "closed"); await Store.setBroadcastField(act.id, ["closedAt"], Date.now()); UI.toast("تم إنهاء طلب الطمأنة");
+      });
+      $("#chkMapWrap").hidden = false;
+      (async () => {
+        if (!chkMap) { try { chkMap = await (chkMapP = chkMapP || UI.emap("chkMap", [25.2, 55.27], 11)); } catch (e) { chkMapP = null; $("#chkMap").innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; return; } }
+        chkMap.clear();
+        R.filter(x => typeof x.s.lat === "number").sort((a, b) => (a.r ? (a.r.state === "help" ? 2 : 1) : 0) - (b.r ? (b.r.state === "help" ? 2 : 1) : 0)).forEach(x => {
+          const k = !x.r ? "wait" : x.r.state === "help" ? "help" : "safe";
+          chkMap.point(x.s.lat, x.s.lng, { kind: k, size: k === "help" ? 28 : 22, pulse: k === "help", html: `<b>${esc(x.s.name)}</b><span>${UI.MAPK[k].l}${x.r && x.r.note ? " — " + esc(x.r.note) : ""}</span>` });
+        });
+      })();
+    }
+    // السجل
+    const L = bcs.slice().sort((a, b) => b.createdAt - a.createdAt);
+    $("#bcList").innerHTML = L.length ? `<div class="card" style="overflow:auto"><table class="tbl"><thead><tr><th>النوع</th><th>الموضوع</th><th>تاريخ الإرسال</th><th>البعثات</th><th>الردود / الاطلاع</th><th>الحالة</th></tr></thead><tbody>${L.map(b => {
+      const T = bcTargets(b), n = T.length;
+      const st = b.type === "check" ? (() => { const v = Object.values(b.responses || {}); return `${v.filter(r => r.state === "safe").length} بخير · <span style="color:var(--red)">${v.filter(r => r.state === "help").length} مساعدة</span> · ${n - v.length} بلا رد`; })()
+        : `${Object.keys(b.reads || {}).length} من ${n} اطّلعت`;
+      return `<tr class="row" data-id="${b.id}"><td>${b.type === "check" ? `<span class="chip red">${UI.ic("check")} طمأنة</span>` : `<span class="chip">${UI.ic("bell")} تعميم</span>`}</td>
+        <td>${esc(b.type === "check" ? "طلب طمأنة " + (BC.REASON_AR[b.reason] || "") : BC.title(b, "ar"))}</td><td class="num" style="white-space:nowrap">${fmtDate(b.createdAt)}</td><td class="num">${b.targets === "all" ? "الكل (" + n + ")" : n}</td><td>${st}</td>
+        <td>${b.type === "check" ? (b.status === "active" ? '<span class="badge" style="--c:#c53030">نشط</span>' : '<span class="badge" style="--c:#64748b">منتهٍ</span>') : '<span class="badge" style="--c:#018556">مُرسل</span>'}</td></tr>`;
+    }).join("")}</tbody></table></div>` : `<div class="card pad empty">لم تُرسل تعاميم أو طلبات طمأنة بعد.</div>`;
+    $("#bcList").querySelectorAll("tr.row").forEach(tr => tr.onclick = () => bcDetail(tr.dataset.id));
+  }
+
+  function bcDetail(id) {
+    const b = bcs.find(x => x.id === id); if (!b) return;
+    const T = bcTargets(b);
+    const list = T.map(s0 => {
+      const r = b.type === "check" ? resp(b, s0.id) : null, rd = (b.reads || {})[s0.id];
+      const sub = b.type === "check" ? (r ? (r.state === "help" ? "تحتاج مساعدة" : "بخير") + " · " + fmtDate(r.at) + (r.note ? " · " + esc(r.note) : "") : "لم ترد") : (rd ? "اطّلعت · " + fmtDate(rd) : "لم تطّلع بعد");
+      return `<div class="site-row ${r && r.state === "help" ? "err" : ""}"><img src="${UI.flagSrc(s0.code)}" alt=""><div><b>${esc(s0.name)}</b><small>${sub}</small></div></div>`;
+    }).join("");
+    openModal(`<div class="modal-h"><h3>${UI.ic(b.type === "check" ? "check" : "bell")}<span>${esc(b.type === "check" ? "طلب طمأنة" : BC.title(b, "ar"))}<span class="sub">${fmtDate(b.createdAt)} · ${esc(b.by || "")}</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b">${b.type === "advisory" ? `<div class="adv-prev"><b>العربية</b><p>${esc(BC.text(b, "ar"))}</p><b>English</b><p dir="ltr">${esc(BC.text(b, "en"))}</p></div>` : `<p class="muted" style="margin-top:0">${esc(BC.REASON_AR[b.reason] || "")}${b.msg ? " — " + esc(b.msg) : ""}</p>`}
+        <h4 class="imp-h">البعثات (${T.length})</h4><div class="site-list">${list}</div></div>`);
+  }
+
+  // اختيار البعثات المستهدفة
+  function targetsHtml() {
+    const cons = sites.filter(s0 => (s0.type || "consulate") === "consulate").sort((a, b) => a.name.localeCompare(b.name, "ar"));
+    const areas = [...new Set(cons.map(s0 => s0.area).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ar"));
+    return `<div class="field full"><label>البعثات المستهدفة</label>
+      <div class="seg wide" id="tgMode"><button type="button" data-m="all" class="on">جميع البعثات (${cons.length})</button><button type="button" data-m="sel">بعثات مختارة</button></div>
+      <div id="tgSel" hidden style="margin-top:8px">
+        <div style="display:flex;gap:8px;margin-bottom:8px"><input class="inp" id="tgQ" placeholder="بحث باسم البعثة"><select class="inp" id="tgArea" style="max-width:220px"><option value="">تحديد بعثات منطقة…</option>${areas.map(a => `<option>${esc(a)}</option>`).join("")}</select></div>
+        <div class="tg-list">${cons.map(s0 => `<label class="tg-row" data-n="${esc(s0.name)}"><input type="checkbox" value="${s0.id}" data-area="${esc(s0.area || "")}"><img src="${UI.flagSrc(s0.code)}" alt=""><span>${esc(s0.name)}<small>${esc(s0.area || "")}</small></span></label>`).join("")}</div>
+        <div class="muted" id="tgN" style="font-size:12.5px;margin-top:6px">لم تُحدد أي بعثة</div>
+      </div></div>`;
+  }
+  function bindTargets() {
+    let mode = "all";
+    document.querySelectorAll("#tgMode button").forEach(b => b.onclick = () => { mode = b.dataset.m; document.querySelectorAll("#tgMode button").forEach(x => x.classList.toggle("on", x === b)); $("#tgSel").hidden = mode !== "sel"; });
+    const cnt = () => { const n = document.querySelectorAll(".tg-list input:checked").length; $("#tgN").textContent = n ? `تم تحديد ${n} بعثة` : "لم تُحدد أي بعثة"; };
+    document.querySelectorAll(".tg-list input").forEach(i => i.onchange = cnt);
+    $("#tgQ").oninput = () => { const q = $("#tgQ").value.trim(); document.querySelectorAll(".tg-row").forEach(r => r.hidden = q && !r.dataset.n.includes(q)); };
+    $("#tgArea").onchange = () => { const a = $("#tgArea").value; if (a) document.querySelectorAll(`.tg-list input`).forEach(i => { if (i.dataset.area === a) i.checked = true; }); $("#tgArea").value = ""; cnt(); };
+    return () => mode === "all" ? "all" : [...document.querySelectorAll(".tg-list input:checked")].map(i => i.value);
+  }
+  const newBcId = () => "_bc_" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5);
+
+  $("#chkBtn").onclick = () => {
+    if (activeChecks().length) UI.toast("يوجد طلب طمأنة نشط بالفعل — يمكنك إرسال طلب جديد، وسيظهر الأحدث أولاً", "warn");
+    openModal(`<div class="modal-h sos"><h3>${UI.ic("check")}<span>طمّنا — طلب طمأنة<span class="sub">يصل لكل بعثة بلغتها، وتردّ بضغطة: «نحن بخير» أو «نحتاج مساعدة»</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b"><div class="grid2">
+        <div class="field"><label>السبب</label><select class="inp" id="ckReason">${Object.entries(BC.REASON_AR).map(([k, v]) => `<option value="${k}">${v || "عام (دون ذكر سبب)"}</option>`).join("")}</select></div>
+        <div class="field"><label>رسالة إضافية بالعربية (اختياري)</label><input class="inp" id="ckMsg" placeholder="تظهر للبعثات العربية فقط"></div>
+        ${targetsHtml()}
+      </div></div>
+      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-red" id="ckGo">${UI.ic("send")} إرسال طلب الطمأنة</button></div>`);
+    const getT = bindTargets();
+    $("#ckGo").onclick = async () => {
+      const tg = getT(); if (tg !== "all" && !tg.length) return UI.toast("يرجى تحديد بعثة واحدة على الأقل", "warn");
+      $("#ckGo").disabled = true;
+      try { await Store.addBroadcast({ id: newBcId(), kind: "bc", type: "check", reason: $("#ckReason").value, msg: $("#ckMsg").value.trim(), targets: tg, status: "active", createdAt: Date.now(), by: officer, responses: {}, reads: {} });
+        closeModal(); UI.toast("تم إرسال طلب الطمأنة إلى البعثات"); } catch (e) { $("#ckGo").disabled = false; UI.toast(e.message, "err"); }
+    };
+  };
+
+  $("#advBtn").onclick = () => {
+    const today = new Date().toISOString().slice(0, 10);
+    openModal(`<div class="modal-h"><h3>${UI.ic("bell")}<span>تعميم أمني جديد<span class="sub">قوالب جاهزة تصل لكل بعثة بلغتها من اللغات العشر</span></span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b"><div class="grid2">
+        <div class="field full"><label>نوع التعميم</label><select class="inp" id="avTpl">${Object.entries(BC.TPL_AR).map(([k, v]) => `<option value="${k}">${k === "custom" ? "نص حر (عربي وإنجليزي)" : v}</option>`).join("")}</select></div>
+        <div class="field av f-area"><label>المنطقة (بالعربية)</label><input class="inp" id="avArea" placeholder="مثال: وسط مدينة دبي"></div>
+        <div class="field av f-area"><label>المنطقة (بالإنجليزية — للغات الأخرى)</label><input class="inp" id="avAreaEn" dir="ltr" placeholder="e.g. Downtown Dubai"></div>
+        <div class="field av f-date"><label>التاريخ</label><input class="inp" type="date" id="avDate" value="${today}"></div>
+        <div class="field av f-opt"><label id="avOptL">السبب</label><select class="inp" id="avOpt"></select></div>
+        <div class="field av f-time"><label>من الساعة</label><input class="inp" type="time" id="avFrom" value="18:00"></div>
+        <div class="field av f-time"><label>إلى الساعة</label><input class="inp" type="time" id="avTo" value="23:59"></div>
+        <div class="field av f-until"><label>حتى تاريخ</label><input class="inp" type="date" id="avUntil" value="${today}"></div>
+        <div class="field av f-custom"><label>العنوان بالعربية</label><input class="inp" id="avTAr"></div>
+        <div class="field av f-custom"><label>العنوان بالإنجليزية</label><input class="inp" id="avTEn" dir="ltr"></div>
+        <div class="field full av f-custom"><label>النص بالعربية</label><textarea class="inp" id="avXAr"></textarea></div>
+        <div class="field full av f-custom"><label>النص بالإنجليزية (يظهر لبقية اللغات)</label><textarea class="inp" id="avXEn" dir="ltr"></textarea></div>
+        <div class="field full"><label>معاينة</label><div class="adv-prev" id="avPrev"></div></div>
+        ${targetsHtml()}
+      </div></div>
+      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-p" id="avGo">${UI.ic("send")} إرسال التعميم</button></div>`);
+    const getT = bindTargets();
+    const SHOW = { roads: ["area", "date", "opt", "time"], weather: ["date", "opt"], event: ["area", "date", "time"], alert: ["until"], custom: ["custom"] };
+    const OPTS = { roads: ["event", "celebration", "works"], weather: ["rain", "wind", "fog"] };
+    const data = () => ({ tpl: $("#avTpl").value, area: $("#avArea").value.trim(), areaEn: $("#avAreaEn").value.trim(), date: $("#avDate").value, opt: $("#avOpt").value,
+      tfrom: $("#avFrom").value, tto: $("#avTo").value, until: $("#avUntil").value, titleAr: $("#avTAr").value.trim(), titleEn: $("#avTEn").value.trim(), textAr: $("#avXAr").value.trim(), textEn: $("#avXEn").value.trim() });
+    const prev = () => { const b = { advisory: data() }; $("#avPrev").innerHTML = `<b>${esc(BC.title(b, "ar"))}</b><p>${esc(BC.text(b, "ar"))}</p><b dir="ltr" style="display:block;text-align:left">${esc(BC.title(b, "en"))}</b><p dir="ltr">${esc(BC.text(b, "en"))}</p>`; };
+    const tplCh = () => {
+      const t0 = $("#avTpl").value;
+      document.querySelectorAll(".av").forEach(el => el.hidden = !SHOW[t0].some(k => el.classList.contains("f-" + k)));
+      if (OPTS[t0]) { $("#avOptL").textContent = t0 === "weather" ? "الحالة الجوية" : "السبب"; $("#avOpt").innerHTML = OPTS[t0].map(k => `<option value="${k}">${BC.OPT_AR[k]}</option>`).join(""); }
+      prev();
+    };
+    $("#avTpl").onchange = tplCh; document.querySelectorAll("#modal .av input, #modal .av select, #modal .av textarea").forEach(el => el.oninput = prev);
+    tplCh();
+    $("#avGo").onclick = async () => {
+      const d = data(), tg = getT();
+      if (tg !== "all" && !tg.length) return UI.toast("يرجى تحديد بعثة واحدة على الأقل", "warn");
+      if (SHOW[d.tpl].includes("area") && !d.area) return UI.toast("يرجى إدخال المنطقة", "warn");
+      if (d.tpl === "custom" && !(d.textAr || d.textEn)) return UI.toast("يرجى كتابة نص التعميم", "warn");
+      $("#avGo").disabled = true;
+      try { await Store.addBroadcast({ id: newBcId(), kind: "bc", type: "advisory", advisory: d, targets: tg, status: "sent", createdAt: Date.now(), by: officer, reads: {} });
+        closeModal(); UI.toast("تم إرسال التعميم إلى البعثات"); } catch (e) { $("#avGo").disabled = false; UI.toast(e.message, "err"); }
+    };
+  };
+
+  /* =========================================================
+     أثر تصفير البيروقراطية (عداد تقديري بافتراضات قابلة للتعديل)
+     ========================================================= */
+  const SAVED_KEY = "dip-saved-cfg";
+  const savedCfg = () => { try { return Object.assign({ hops: 14, mins: 15 }, JSON.parse(localStorage.getItem(SAVED_KEY) || "{}")); } catch (e) { return { hops: 14, mins: 15 }; } };
+  function savedCalc(L) {
+    const c = savedCfg(), n = L.length;
+    const routed = L.filter(r => r.routedAt && r.routedAt > r.createdAt);
+    const avgRoute = routed.length ? routed.reduce((s0, r) => s0 + (r.routedAt - r.createdAt), 0) / routed.length : 0;
+    return { n, c, letters: n * c.hops, hours: Math.round(n * c.hops * c.mins / 60), avgRoute, routedN: routed.length };
+  }
+  const durTxt = ms => { const m = Math.round(ms / 60000); if (m < 60) return m + " دقيقة"; const h = m / 60; if (h < 48) return (Math.round(h * 10) / 10) + " ساعة"; return Math.round(h / 24) + " يوم"; };
+  function renderSaved(L) {
+    const x = savedCalc(L);
+    $("#saved").innerHTML = `<div class="sv-h"><div><b>${UI.ic("route")} أثر تصفير البيروقراطية</b><span class="muted">مقارنة بالمسار السابق القائم على المخاطبات والإحالات</span></div><button class="btn btn-o btn-sm" id="savedCfg">الافتراضات</button></div>
+      <div class="sv-g">
+        <div><b class="num">${x.letters.toLocaleString("en-US")}</b><span>مخاطبة وإحالة ورقية أو بريدية لم تعد مطلوبة</span><small>${x.n} طلب × ${x.c.hops} مخاطبة لكل طلب</small></div>
+        <div><b class="num">${x.hours.toLocaleString("en-US")}</b><span>ساعة عمل موفّرة (تقديري)</span><small>${x.c.mins} دقيقة لإعداد وتمرير كل مخاطبة</small></div>
+        <div><b class="num">${x.routedN ? durTxt(x.avgRoute) : "—"}</b><span>متوسط زمن وصول الطلب إلى الجهة المختصة</span><small>قياس فعلي من ${x.routedN} طلب موزّع عبر المنصة</small></div>
+        <div><b class="num">0</b><span>ورقة مطبوعة في دورة الطلب</span><small>من التقديم حتى تقرير التنفيذ</small></div>
+      </div>`;
+    $("#savedCfg").onclick = () => {
+      const c = savedCfg();
+      openModal(`<div class="modal-h"><h3>${UI.ic("route")}<span>افتراضات حساب الأثر</span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+        <div class="modal-b"><p class="muted" style="margin-top:0">عدّل القيم وفق واقع العمل في القسم؛ تُستخدم في العداد وفي تقرير الفترة.</p><div class="grid2">
+          <div class="field"><label>عدد المخاطبات والإحالات لكل طلب في المسار السابق</label><input class="inp" type="number" min="1" id="cfH" value="${c.hops}"><div class="map-note">الافتراضي 14: سبع محطات ذهاباً وسبع إياباً</div></div>
+          <div class="field"><label>متوسط دقائق إعداد وتمرير المخاطبة الواحدة</label><input class="inp" type="number" min="1" id="cfM" value="${c.mins}"></div>
+        </div></div>
+        <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-p" id="cfS">${UI.ic("check")} حفظ</button></div>`);
+      $("#cfS").onclick = () => { try { localStorage.setItem(SAVED_KEY, JSON.stringify({ hops: Math.max(1, +$("#cfH").value || 14), mins: Math.max(1, +$("#cfM").value || 15) })); } catch (e) {} closeModal(); renderDash(); };
+    };
+  }
+
+  /* =========================================================
+     تقرير إحصائي لفترة يحددها المستخدم
+     ========================================================= */
+  $("#periodBtn").onclick = () => {
+    const t = new Date(), y0 = t.getFullYear() + "-01-01", d1 = t.toISOString().slice(0, 10);
+    openModal(`<div class="modal-h"><h3>${UI.ic("report")}<span>تقرير إحصائي لفترة</span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b"><div class="grid2">
+        <div class="field"><label>من تاريخ</label><input class="inp" type="date" id="prFrom" value="${y0}"></div>
+        <div class="field"><label>إلى تاريخ</label><input class="inp" type="date" id="prTo" value="${d1}"></div>
+        <div class="field full"><div class="range" id="prQuick"><button type="button" data-q="m">الشهر الحالي</button><button type="button" data-q="q">آخر 3 أشهر</button><button type="button" data-q="y" class="on">السنة الحالية</button><button type="button" data-q="py">السنة الماضية</button></div></div>
+      </div><p class="muted" style="margin:6px 0 0">يُفتح التقرير بالهوية المؤسسية جاهزاً للطباعة أو الحفظ PDF.</p></div>
+      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-gold" id="prGo">${UI.ic("download")} إعداد التقرير</button></div>`);
+    const iso = d => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    document.querySelectorAll("#prQuick button").forEach(b => b.onclick = () => {
+      const n = new Date(); let a, z = n;
+      if (b.dataset.q === "m") a = new Date(n.getFullYear(), n.getMonth(), 1);
+      if (b.dataset.q === "q") a = new Date(n.getFullYear(), n.getMonth() - 3, n.getDate());
+      if (b.dataset.q === "y") a = new Date(n.getFullYear(), 0, 1);
+      if (b.dataset.q === "py") { a = new Date(n.getFullYear() - 1, 0, 1); z = new Date(n.getFullYear() - 1, 11, 31); }
+      $("#prFrom").value = iso(a); $("#prTo").value = iso(z); document.querySelectorAll("#prQuick button").forEach(x => x.classList.toggle("on", x === b));
+    });
+    $("#prGo").onclick = () => {
+      const f = $("#prFrom").value, z = $("#prTo").value;
+      if (!f || !z || f > z) return UI.toast("يرجى تحديد فترة صحيحة", "warn");
+      closeModal(); periodReport(f, z);
+    };
+  };
+
+  async function periodReport(fromIso, toIso) {
+    const w = window.open("", "_blank");
+    if (!w) { UI.toast("يرجى السماح بالنوافذ المنبثقة لإعداد التقرير", "warn"); return; }
+    w.document.write('<p style="font-family:sans-serif;text-align:center;margin-top:40px">جارٍ إعداد التقرير…</p>');
+    const t0 = new Date(fromIso + "T00:00:00").getTime(), t1 = new Date(toIso + "T00:00:00").getTime() + DAY;
+    const L = all.filter(r => r.createdAt >= t0 && r.createdAt < t1);
+    const B = bcs.filter(b => b.createdAt >= t0 && b.createdAt < t1);
+    const dir = location.href.replace(/[^/]*$/, "") + "assets/img/";
+    const [lDp, lAcis, lGov] = await Promise.all(["logo-dubai-police.png", "logo-acis.png", "logo-gov-dubai.png"].map(n => toData(dir + n)));
+    const dmy = iso => iso.split("-").reverse().join("/");
+    const done = L.filter(r => r.status === "completed"), open = L.filter(r => !["completed", "rejected"].includes(r.status));
+    const inSla = done.filter(r => r.completedAt - r.createdAt <= r.slaHours * HOUR);
+    const slaPct = done.length ? Math.round(inSla.length / done.length * 100) : 0;
+    const avgH = done.length ? Math.round(done.reduce((s0, r) => s0 + (r.completedAt - r.createdAt), 0) / done.length / HOUR * 10) / 10 : 0;
+    const rated = L.filter(r => r.rating), satPct = rated.length ? Math.round(rated.reduce((s0, r) => s0 + r.rating, 0) / rated.length / 5 * 100) : 0;
+    const pct = (a, b) => b ? Math.round(a / b * 100) : 0;
+    const tbl = (head, rows) => `<table><thead><tr>${head.map(h => `<th>${h}</th>`).join("")}</tr></thead><tbody>${rows.join("") || `<tr><td colspan="${head.length}" style="text-align:center;color:#5d6b64">لا توجد بيانات</td></tr>`}</tbody></table>`;
+    const grp = (keyFn, labelFn) => { const m = {}; L.forEach(r => { const k = keyFn(r); m[k] = (m[k] || 0) + 1; }); return Object.entries(m).sort((a, b) => b[1] - a[1]).map(([k, n]) => [labelFn(k), n]); };
+    const byCat = grp(r => r.category, k => (CATEGORIES[k] || {}).ar || k);
+    const byUnit = grp(r => r.unit, k => (UNITS[k] || {}).ar || k);
+    const byStatus = grp(r => r.status, k => (STATUSES[k] || {}).ar || k);
+    const byMission = grp(r => r.missionName, k => k).slice(0, 10);
+    // شهرياً
+    const months = []; { const a = new Date(t0), z = new Date(t1 - 1); let d = new Date(a.getFullYear(), a.getMonth(), 1); while (d <= z) { months.push(new Date(d)); d = new Date(d.getFullYear(), d.getMonth() + 1, 1); } }
+    const MN = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+    const mRows = months.map(d => { const a = d.getTime(), z = new Date(d.getFullYear(), d.getMonth() + 1, 1).getTime(); const R = L.filter(r => r.createdAt >= a && r.createdAt < z);
+      return { l: MN[d.getMonth()] + " " + d.getFullYear(), n: R.length, sos: R.filter(r => r.urgent).length }; });
+    const mMax = Math.max(1, ...mRows.map(x => x.n)), top = mRows.reduce((a, b) => b.n > a.n ? b : a, { n: -1 });
+    const topSos = mRows.reduce((a, b) => b.sos > a.sos ? b : a, { sos: -1 });
+    const sv = savedCalc(L);
+    const chk = B.filter(b => b.type === "check"), adv = B.filter(b => b.type === "advisory");
+    const respTimes = []; chk.forEach(b => Object.values(b.responses || {}).forEach(r => respTimes.push(r.at - b.createdAt)));
+    const avgResp = respTimes.length ? respTimes.reduce((a, b) => a + b, 0) / respTimes.length : 0;
+    const kpi = (l, v, s0) => `<div class="k"><span>${l}</span><b>${v}</b>${s0 ? `<small>${s0}</small>` : ""}</div>`;
+    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير إحصائي ${dmy(fromIso)} – ${dmy(toIso)}</title>
+<style>
+@font-face{font-family:B;font-weight:400;src:local("29LT Bukra Regular"),local("29LT Bukra")}@font-face{font-family:B;font-weight:700;src:local("29LT Bukra Bold")}
+@page{size:A4;margin:14mm 12mm 18mm}*{box-sizing:border-box}body{font-family:B,"Dubai","Segoe UI",Tahoma,sans-serif;color:#1d2a24;margin:0;padding-bottom:34px;font-size:12px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00492c;padding-bottom:10px}
+.hd .r{display:flex;align-items:center;gap:12px}.hd img{height:48px}.hd .sep{width:1.5px;height:42px;background:#018556}
+.hd .d b{display:block;font-size:14px}.hd .d small{font-size:8.5px;color:#5d6b64;font-weight:700}
+h1{font-size:19px;text-align:center;color:#00492c;margin:16px 0 2px}.sub{text-align:center;color:#5d6b64;margin-bottom:14px}
+h2{font-size:13.5px;color:#fff;background:#00492c;padding:5px 12px;border-radius:6px;margin:16px 0 8px;break-after:avoid}
+.kp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.k{border:1px solid #d6e3db;border-radius:8px;padding:8px 10px;break-inside:avoid}.k span{display:block;font-size:10.5px;color:#5d6b64}.k b{font-size:20px;color:#00492c}.k small{display:block;font-size:10px;color:#5d6b64}
+table{width:100%;border-collapse:collapse;break-inside:avoid}th,td{border:1px solid #d6e3db;padding:5px 9px;text-align:right}th{background:#f1f7f4}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.bars{display:grid;gap:4px}.bar{display:grid;grid-template-columns:110px 1fr 120px;gap:8px;align-items:center;font-size:11px}.bar i{display:block;height:12px;border-radius:6px;background:#018556}.bar.top i{background:#cfa562}.bar em{font-style:normal;color:#5d6b64}
+.note{border:1px solid #e9d7ad;background:#fbf6ea;border-radius:8px;padding:8px 11px;margin-top:8px}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}.sign div{border-top:1px dashed #9db3a7;padding-top:6px;text-align:center;color:#5d6b64}
+.ft{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #00492c;padding-top:5px;display:flex;justify-content:space-between;font-size:10px;color:#5d6b64}.ft b{color:#00492c}
+@media screen{.ft{position:static;margin-top:22px}body{max-width:900px;margin:0 auto;padding:20px}}
+</style></head><body>
+<div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img src="${lAcis}" style="height:52px"><div class="d"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div></div><img src="${lGov}"></div>
+<h1>تقرير إحصائي — المنصة الإلكترونية لخدمات الهيئات الدبلوماسية</h1><div class="sub">للفترة من ${dmy(fromIso)} إلى ${dmy(toIso)}</div>
+<h2>المؤشرات الرئيسية</h2><div class="kp">
+${kpi("إجمالي الطلبات", L.length, `${open.length} مفتوح · ${done.length} مكتمل`)}${kpi("الالتزام بمهلة الإنجاز", slaPct + "%", "المستهدف 95%")}${kpi("متوسط زمن الإنجاز", avgH + " ساعة", `من ${done.length} طلب مكتمل`)}${kpi("رضا المتعاملين", satPct + "%", `${rated.length} تقييم`)}
+${kpi("البلاغات الطارئة", L.filter(r => r.urgent).length, "")}${kpi("التصاريح الرقمية", L.filter(r => r.permitCode && r.status !== "rejected").length, "")}${kpi("تقارير التنفيذ", L.filter(r => r.report).length, "")}${kpi("الطلبات المعتذر عنها", L.filter(r => r.status === "rejected").length, "")}</div>
+<h2>التوزيع الشهري للطلبات</h2><div class="bars">${mRows.map(x => `<div class="bar ${x === top && x.n > 0 ? "top" : ""}"><span>${x.l}</span><i style="width:${x.n / mMax * 100}%"></i><em>${x.n} طلب${x.sos ? " · " + x.sos + " طارئ" : ""}</em></div>`).join("")}</div>
+${top.n > 0 ? `<div class="note"><b>أعلى شهر:</b> ${top.l} بعدد ${top.n} طلب${topSos.sos > 0 ? ` · <b>أعلى شهر في البلاغات الطارئة:</b> ${topSos.l} (${topSos.sos})` : ""}. يُستفاد من ذلك في الاستعداد المسبق للفترة نفسها من العام القادم.</div>` : ""}
+<div class="two"><div><h2>حسب نوع الخدمة</h2>${tbl(["النوع", "العدد", "النسبة"], byCat.map(([l, n]) => `<tr><td>${esc(l)}</td><td>${n}</td><td>${pct(n, L.length)}%</td></tr>`))}</div>
+<div><h2>حسب الجهة المختصة</h2>${tbl(["الجهة", "العدد", "النسبة"], byUnit.map(([l, n]) => `<tr><td>${esc(l)}</td><td>${n}</td><td>${pct(n, L.length)}%</td></tr>`))}</div></div>
+<div class="two"><div><h2>حسب الحالة</h2>${tbl(["الحالة", "العدد"], byStatus.map(([l, n]) => `<tr><td>${esc(l)}</td><td>${n}</td></tr>`))}</div>
+<div><h2>أكثر البعثات طلباً</h2>${tbl(["البعثة", "الطلبات"], byMission.map(([l, n]) => `<tr><td>${esc(l)}</td><td>${n}</td></tr>`))}</div></div>
+<h2>التواصل مع البعثات</h2><div class="kp">${kpi("تعاميم أمنية مرسلة", adv.length, "")}${kpi("طلبات طمأنة", chk.length, "")}${kpi("ردود البعثات", respTimes.length, "")}${kpi("متوسط زمن الرد", respTimes.length ? durTxt(avgResp) : "—", "على طلبات الطمأنة")}</div>
+<h2>أثر تصفير البيروقراطية</h2><div class="kp">${kpi("مخاطبات وإحالات لم تعد مطلوبة", sv.letters.toLocaleString("en-US"), `${sv.c.hops} لكل طلب`)}${kpi("ساعات عمل موفّرة", sv.hours.toLocaleString("en-US"), "تقديري")}${kpi("متوسط وصول الطلب للجهة", sv.routedN ? durTxt(sv.avgRoute) : "—", "قياس فعلي")}${kpi("أوراق مطبوعة", 0, "دورة رقمية كاملة")}</div>
+<div class="note">القيم التقديرية محسوبة على أساس ${sv.c.hops} مخاطبة وإحالة لكل طلب في المسار السابق، و${sv.c.mins} دقيقة لإعداد وتمرير كل مخاطبة.</div>
+<div class="sign"><div>أعدّه: ${esc(officer)}<br>${fmtDate(Date.now())}</div><div>اعتماد مدير الإدارة</div></div>
+<div class="ft"><span>القيادة العامة لشرطة دبي — الإدارة العامة لأمن الهيئات والمنشآت والطوارئ</span><b>حراسة | تأمين | استجابة</b></div>
+<script>window.onload=()=>setTimeout(()=>print(),700)<\/script></body></html>`;
+    w.document.open(); w.document.write(html); w.document.close();
   }
 
   /* ---------- تبويب التقارير ---------- */

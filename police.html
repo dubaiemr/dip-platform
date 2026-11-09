@@ -36,9 +36,10 @@
   <div class="in">
     <div class="title">لوحة استلام الطلبات <span class="tag">قسم أمن الهيئات الدبلوماسية والمنشآت الهامة</span></div>
     <nav id="nav" hidden>
-      <button data-view="dash" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>المؤشرات</button>
+      <button data-view="dash" class="on"><svg class="ic" viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>الإحصائيات</button>
       <button data-view="reqs"><svg class="ic" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg>الطلبات <span class="cnt" id="newCnt"></span></button>
       <button data-view="map"><svg class="ic" viewBox="0 0 24 24"><path d="M9 4L3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>الخارطة</button>
+      <button data-view="comm"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13"/></svg>التواصل <span class="cnt" id="commCnt"></span></button>
       <button data-view="reports"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>التقارير <span class="cnt" id="repCnt"></span></button>
       <button data-view="verify"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><path d="M14 14h3v3h-3zM20 14v.01M14 20h.01M17 17h4v4"/></svg>التحقق من تصريح</button>
     </nav>
@@ -57,15 +58,17 @@
 </section>
 
 <main id="app" hidden>
-  <!-- المؤشرات -->
+  <!-- الإحصائيات -->
   <section id="v-dash">
     <div class="dash-h">
-      <div><h1>مؤشرات المنصة</h1><div class="muted" id="asOf"></div></div>
+      <div><h1>إحصائيات المنصة</h1><div class="muted" id="asOf"></div></div>
       <div class="range" id="range">
         <button data-d="7">7 أيام</button><button data-d="30" class="on">30 يوم</button><button data-d="0">الكل</button>
       </div>
+      <button class="btn btn-gold btn-sm" id="periodBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 12h7M9 16h7"/></svg>تقرير فترة</button>
     </div>
     <div class="kpis" id="kpis"></div>
+    <div class="card saved" id="saved"></div>
     <div class="dgrid">
       <div class="card pad"><h3 class="ch">الطلبات حسب نوع الخدمة</h3><div id="byCat"></div></div>
       <div class="card pad"><h3 class="ch">الطلبات حسب الحالة</h3><div id="byStatus"></div></div>
@@ -109,6 +112,16 @@
   </section>
 
   <!-- التحقق -->
+  <section id="v-comm" hidden>
+    <div class="sec-h" style="margin-top:0"><h2>التواصل مع البعثات</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-red btn-sm" id="chkBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg>طمّنا — طلب طمأنة</button>
+      <button class="btn btn-p btn-sm" id="advBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M3 11v2a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/></svg>تعميم أمني جديد</button></div></div>
+    <div id="chkLive"></div>
+    <div class="card" id="chkMapWrap" hidden style="padding:8px;margin-top:12px"><div id="chkMap" class="mapbox" style="height:430px"></div></div>
+    <h3 class="ch" style="margin:18px 0 10px">السجل</h3>
+    <div id="bcList"></div>
+  </section>
+
   <section id="v-reports" hidden>
     <div class="sec-h" style="margin-top:0"><h2>تقارير التنفيذ</h2>
       <div class="range" id="repTabs"><button data-r="done" class="on">التقارير المرفوعة</button><button data-r="need">بانتظار التقرير</button></div></div>
@@ -141,6 +154,7 @@
 <script src="assets/js/config.js"></script>
 <script src="assets/js/sites.js"></script>
 <script src="assets/js/data.js"></script>
+<script src="assets/js/bc.js"></script>
 <script src="assets/js/police.js"></script>
 <script src="assets/js/brand-fit.js"></script>
 </body>

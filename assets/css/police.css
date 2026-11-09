@@ -194,3 +194,40 @@
 
 .media2 .photo .more { position: absolute; bottom: 8px; inset-inline-start: 8px; display: flex; gap: 6px; }
 .media2 .photo .more img { width: 54px; height: 54px; border-radius: 8px; border: 2px solid #fff; object-fit: cover; box-shadow: 0 2px 8px rgba(0,0,0,.35); cursor: zoom-in; }
+
+/* ---------- التواصل مع البعثات ---------- */
+.btn-red { background: linear-gradient(135deg, #e5484d, #b42318); color: #fff; }
+.btn-red:hover { filter: brightness(1.05); }
+.chk-idle { display: flex; gap: 14px; align-items: center; }
+.chk-idle > .ic { width: 38px; height: 38px; padding: 8px; border-radius: 12px; background: var(--g50); color: var(--g600); flex: none; }
+.chk-idle b { display: block; margin-bottom: 2px; }
+.chk-live { border: 1.5px solid #f0b4b4; }
+.chk-h { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; flex-wrap: wrap; }
+.live-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #e53e3e; margin-inline-end: 6px; box-shadow: 0 0 0 0 rgba(229,62,62,.6); animation: livep 1.6s infinite; vertical-align: middle; }
+@keyframes livep { 70% { box-shadow: 0 0 0 10px rgba(229,62,62,0); } 100% { box-shadow: 0 0 0 0 rgba(229,62,62,0); } }
+.chk-nums { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 14px 0 10px; }
+.chk-nums div { border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; font-size: 13px; color: var(--muted); }
+.chk-nums b { display: block; font-size: 26px; color: var(--ink); }
+.chk-nums .ok b { color: #16a34a; } .chk-nums .bad b { color: var(--red); } .chk-nums .wt b { color: #8a94a6; }
+.chk-bar { height: 8px; border-radius: 6px; background: var(--g50); overflow: hidden; }
+.chk-bar i { display: block; height: 100%; background: linear-gradient(90deg, #16a34a, #22c55e); border-radius: 6px; transition: width .4s; }
+.chk-d { margin-top: 10px; } .chk-d summary { cursor: pointer; font-weight: 700; font-size: 14px; padding: 6px 0; }
+.adv-prev { border: 1px dashed var(--gold); background: color-mix(in srgb, var(--gold) 7%, transparent); border-radius: 12px; padding: 10px 14px; font-size: 13.5px; }
+.adv-prev p { margin: 2px 0 10px; line-height: 1.8; } .adv-prev p:last-child { margin-bottom: 0; }
+.tg-list { max-height: 240px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; padding: 4px; display: grid; grid-template-columns: 1fr 1fr; gap: 2px; }
+.tg-row { display: flex; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.tg-row:hover { background: var(--g50); }
+.tg-row img { width: 24px; height: 18px; border-radius: 2px; border: 1px solid var(--line); flex: none; }
+.tg-row small { display: block; font-size: 11px; color: var(--muted); }
+.tg-row[hidden] { display: none; }
+/* أثر تصفير البيروقراطية */
+.saved { margin-top: 14px; padding: 16px 18px; border: 1.5px solid var(--gold); background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 9%, var(--card)), var(--card)); }
+.sv-h { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+.sv-h b { display: flex; gap: 8px; align-items: center; font-size: 16px; } .sv-h .muted { font-size: 12.5px; }
+.sv-g { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.sv-g > div { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; }
+.sv-g b { display: block; font-size: 26px; color: var(--g700); line-height: 1.3; }
+.sv-g span { display: block; font-size: 13px; font-weight: 700; } .sv-g small { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+:root[data-theme="dark"] .sv-g b { color: var(--gold-l, #e9cf8e); }
+.dash-h { flex-wrap: wrap; gap: 10px; }
+@media (max-width: 900px) { .chk-nums, .sv-g { grid-template-columns: 1fr 1fr; } .tg-list { grid-template-columns: 1fr; } }

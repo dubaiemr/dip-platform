@@ -147,6 +147,60 @@
       notifyChanges();
       renderAll();
     }, missionId);
+    if (unsubBc) unsubBc();
+    let bcFirst = true;
+    unsubBc = Store.subscribeBroadcasts(list => {
+      bcs = list.filter(b => BC.isFor(b, missionId)).sort((a, b) => b.createdAt - a.createdAt);
+      notifyBc(bcFirst); bcFirst = false;
+      renderBc(); EAlerts.update();
+    });
+  }
+  /* ---------- التعاميم وطلبات الطمأنة ---------- */
+  let bcs = [], unsubBc = null;
+  const BC_SEEN = () => "dip-bc-seen-" + missionId;
+  const myResp = b => (b.responses || {})[missionId];
+  const bcPending = () => bcs.filter(b => (b.type === "check" && b.status === "active" && !myResp(b)) || (b.type === "advisory" && !(b.reads || {})[missionId])).length;
+  function notifyBc(first) {
+    let seen = {}; try { seen = JSON.parse(localStorage.getItem(BC_SEEN()) || "{}"); } catch (e) {}
+    bcs.forEach(b => {
+      if (seen[b.id]) return; seen[b.id] = 1;
+      if (first && Date.now() - b.createdAt > 6 * 3600e3) return;
+      if (b.type === "check" && b.status !== "active") return;
+      const title = b.type === "check" ? BC.ui(lang, "newChk") : BC.ui(lang, "newAdv");
+      const body = b.type === "check" ? BC.ui(lang, "chkSub") : BC.title(b, lang) + "\n" + BC.text(b, lang);
+      UI.toast(title, b.type === "check" ? "err" : ""); UI.beep && UI.beep();
+      EAlerts.show(title, { body, tag: b.id, renotify: true, requireInteraction: b.type === "check", dir: lang === "ar" ? "rtl" : "ltr", lang, icon: "assets/img/icons/embassy-192.png", badge: "assets/img/icons/badge-96.png", data: { page: "embassy.html" } });
+    });
+    try { localStorage.setItem(BC_SEEN(), JSON.stringify(seen)); } catch (e) {}
+  }
+  function renderBc() {
+    const el = $("#chkBanner"); if (!el) return;
+    const act = bcs.find(b => b.type === "check" && b.status === "active");
+    const u = k => BC.ui(lang, k);
+    if (!act) el.innerHTML = "";
+    else if (myResp(act)) {
+      const r = myResp(act);
+      el.innerHTML = `<div class="chk-done ${r.state}">${UI.ic(r.state === "help" ? "alert" : "check")}<span>${u(r.state === "help" ? "sentHelp" : "sentSafe")}</span><small class="num">${fmtDate(r.at)}</small></div>`;
+    } else {
+      const why = BC.reason(lang, act.reason);
+      el.innerHTML = `<div class="chk-ban">
+        <div class="t"><span class="pulse"></span><div><b>${esc(u("chkT"))}</b><span>${esc(u("chkSub"))}${why ? " — " + esc(why) : ""}</span>${act.msg && lang === "ar" ? `<span>${esc(act.msg)}</span>` : ""}</div></div>
+        <input class="inp" id="chkNote" placeholder="${esc(u("note"))}">
+        <div class="a"><button class="btn btn-safe" data-st="safe">${UI.ic("check")} ${esc(u("safe"))}</button><button class="btn btn-help" data-st="help">${UI.ic("alert")} ${esc(u("help"))}</button></div></div>`;
+      el.querySelectorAll("[data-st]").forEach(b => b.onclick = async () => {
+        el.querySelectorAll("button").forEach(x => x.disabled = true);
+        try { await Store.setBroadcastField(act.id, ["responses", missionId], { state: b.dataset.st, note: $("#chkNote").value.trim(), at: Date.now(), by: MISSIONS[missionId].ar }); }
+        catch (e) { UI.toast(e.message, "err"); el.querySelectorAll("button").forEach(x => x.disabled = false); }
+      });
+    }
+    const adv = bcs.filter(b => b.type === "advisory").slice(0, 6), box = $("#advList");
+    if (!box) return;
+    box.innerHTML = adv.length ? `<div class="sec-h"><h2>${esc(u("sec"))}</h2></div><div class="adv-list">${adv.map(b => {
+      const read = (b.reads || {})[missionId];
+      return `<div class="card adv ${read ? "" : "new"}"><div class="h">${UI.ic("bell")}<b>${esc(BC.title(b, lang))}</b><small class="num">${fmtDate(b.createdAt)}</small></div>
+        <p>${esc(BC.text(b, lang))}</p>${read ? "" : `<button class="btn btn-o btn-sm" data-rd="${b.id}">${UI.ic("check")} ${esc(u("ack"))}</button>`}</div>`;
+    }).join("")}</div>` : "";
+    box.querySelectorAll("[data-rd]").forEach(b => b.onclick = async () => { b.disabled = true; try { await Store.setBroadcastField(b.dataset.rd, ["reads", missionId], Date.now()); } catch (e) { b.disabled = false; } });
   }
   function renderWho() {
     $("#who").innerHTML = `<button class="act notif" id="notifBtn"></button>${UI.ic("user")}<span>${esc(nm(MISSIONS[missionId]))}</span>
@@ -226,14 +280,14 @@
       try { if (!localStorage.getItem(SEEN_KEY())) { const s = {}; all.forEach(r => s[r.id] = r.updatedAt); localStorage.setItem(SEEN_KEY(), JSON.stringify(s)); } } catch (e) {}
     },
     update() {
-      const n = this.unseen().length;
+      const n = this.unseen().length + bcPending();
       try { if (navigator.setAppBadge) { if (n) navigator.setAppBadge(n); else navigator.clearAppBadge(); } } catch (e) {}
       const c = $("#updCnt"); if (c) { c.textContent = n; c.classList.toggle("show", n > 0); }
     }
   };
 
   /* ---------- العرض ---------- */
-  function renderAll() { renderHome(); renderRequests(); }
+  function renderAll() { renderHome(); renderRequests(); renderBc(); }
 
   function renderHome() {
     const m = MISSIONS[missionId];

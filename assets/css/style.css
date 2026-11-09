@@ -349,3 +349,5 @@ html, body { overflow-x: clip; }
 
 .thumbs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
 .thumbs .thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--gold); }
+
+@media (max-width: 1150px) and (min-width: 901px) { .appbar nav button > .ic { display: none; } .appbar nav button { padding: 8px 9px; } .appbar .title { font-size: 14.5px; } }
