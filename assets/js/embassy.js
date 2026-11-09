@@ -362,6 +362,7 @@
       UI.emap("fMap", [m.lat, m.lng], 14).then(mp => {
         if (!$("#fMap")) { mp.destroy(); return; }
         map = mp;
+        mp.sites([{ id: missionId, type: "consulate", code: m.code, name: m.ar, lat: m.lat, lng: m.lng }], { mode: "flags" });
         mp.onPick((lat, lng) => {
           loc = { lat: +lat.toFixed(5), lng: +lng.toFixed(5), label: "" };
           $("#mapNote").innerHTML = `${UI.ic("check")} <span class="num" dir="ltr">${loc.lat}, ${loc.lng}</span>`;
@@ -479,6 +480,7 @@
     UI.emap("emMap", [m.cons.lat, m.cons.lng], 17).then(mp => {
       if (!$("#emMap")) { mp.destroy(); return; }
       map = mp;
+      mp.sites([{ id: missionId, type: "consulate", code: m.code, name: m.ar, lat: m.lat, lng: m.lng }], { mode: "flags" });
       mp.onPick((lat, lng) => { loc.lat = +lat.toFixed(6); loc.lng = +lng.toFixed(6); showLoc(); });
       place(loc.lat, loc.lng);
     }).catch(() => { const el = $("#emMap"); if (el) el.remove(); showLoc(); });

@@ -6,6 +6,7 @@
   const { SERVICES, CATEGORIES, MISSIONS, FACILITIES, FAC_TYPES, SOURCES, STATUSES, UNITS, svc, unitFor, fmtDate, makePermitCode, esc, slaInfo, fmtDur, Store, HOUR, DAY } = DIP;
   const $ = s => document.querySelector(s);
 
+  let sites = [], siteMode = "flags";
   let all = [], officer = "ضابط المناوبة", rangeDays = 30, view = "dash", known = null, openId = null, bigMap = null, mapLayer = null;
 
   /* ---------- الدخول ---------- */
@@ -44,7 +45,7 @@
       Store.mode === "local" ? "ستُستبدل جميع الطلبات الحالية في هذا المتصفح ببيانات تجريبية جاهزة." : "ستُضاف مجموعة من الطلبات التجريبية إلى قاعدة البيانات، وتظهر فوراً في المنصتين.",
       "تحميل", async () => { if (Store.mode === "local") await Store.reset(); else await Store.seed(); UI.toast("تم تحميل البيانات التجريبية"); });
     $("#clearBtn").onclick = () => confirmBox("مسح كل الطلبات",
-      "سيُحذف جميع الطلبات والبلاغات والتقارير من المنصتين (بوابة الهيئات الدبلوماسية ولوحة الشرطة)، لتبدأ التجربة من الصفر. لا يمكن التراجع عن هذا الإجراء.",
+      "سيُحذف جميع الطلبات والبلاغات والتقارير من المنصتين (بوابة الهيئات الدبلوماسية ولوحة الشرطة)، لتبدأ التجربة من الصفر. لا يمكن التراجع عن هذا الإجراء. كشف القنصليات ومواقعها لا يتأثر.",
       "مسح الكل", async () => { await Store.clear(); known = new Set(); UI.toast("تم مسح جميع الطلبات — المنصتان جاهزتان لتجربة جديدة"); }, true);
     Alerts.init();
     Store.subscribe(list => {
@@ -52,6 +53,7 @@
       detectNew();
       render();
     });
+    Store.subscribeSites(list => { sites = list; if (view === "map") renderMap(); });
     setInterval(() => { if (view === "reqs") renderRows(); renderSos(); }, 30e3);
   }
   // نافذة تأكيد داخلية بدل confirm()
@@ -496,28 +498,191 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
   }
 
   /* ---------- الخارطة ---------- */
-  let bigMapP = null;
+  let bigMapP = null, sitesSig = "";
+  const TYPE_AR = { consulate: "قنصلية", res: "منزل قنصل" };
+  const hasXY = st => typeof st.lat === "number" && typeof st.lng === "number" && !isNaN(st.lat) && !isNaN(st.lng);
+  const inDubai = (lat, lng) => lat > 24.6 && lat < 25.45 && lng > 54.85 && lng < 56.25;
+  const normName = x => String(x || "").replace(/[ً-ْ]/g, "").replace(/[أإآ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي").replace(/\s+/g, " ").trim();
+  const countryAr = code => UI.countryName(code) || code;
+  let FLAG_CODES = null;
+  const flagCodes = async () => FLAG_CODES || (FLAG_CODES = await fetch("assets/img/flags/codes.json").then(r => r.json()).catch(() => []));
+
   async function renderMap() {
+    const placed = sites.filter(hasXY).length, un = sites.length - placed;
+    $("#unplacedBtn").hidden = !un; $("#unplacedBtn").innerHTML = `${UI.ic("pin")} مواقع غير محددة <b class="num">(${un})</b>`;
+    $("#sitesNote").textContent = `عدد المواقع على الخارطة: ${placed} من ${sites.length} · تتجمع الأعلام المتقاربة عند الابتعاد، وتظهر منفردة عند التقريب على مستوى دبي.`;
     if (!bigMap) {
-      try { bigMap = await (bigMapP = bigMapP || UI.emap("bigMap", [25.243, 55.302], 13)); }
+      try { bigMap = await (bigMapP = bigMapP || UI.emap("bigMap", [25.2, 55.27], 11)); }
       catch (e) { bigMapP = null; $("#bigMap").innerHTML = '<div class="empty">تتطلب الخارطة اتصالاً بالإنترنت.</div>'; return; }
     }
+    const sig = JSON.stringify(sites) + siteMode;
+    if (sig !== sitesSig) { sitesSig = sig; await bigMap.sites(sites, { mode: siteMode, onClick: sitePopup }); }
     bigMap.clear();
-    Object.values(MISSIONS).forEach(m => {
-      bigMap.point(m.cons.lat, m.cons.lng, { kind: "mission",
-        html: `<b>${esc(m.ar)}</b><span>هيئة دبلوماسية${m.res.same ? " — منزل القنصل داخل المبنى" : ""}</span><span>القنصل العام: ${esc(m.consul)}</span>` });
-      if (!m.res.same) bigMap.point(m.res.lat, m.res.lng, { kind: "res",
-        html: `<b>منزل قنصل</b><span>${esc(m.ar)}</span><span>${esc(m.consul)} (موقع افتراضي)</span>` });
-    });
-    FACILITIES.forEach(f => bigMap.point(f.lat, f.lng, { kind: "fac", html: `<b>${esc(f.ar)}</b><span>${esc(FAC_TYPES[f.type])} — منشأة هامة</span>` }));
-    // ترتيب الرسم: المكتمل أولاً ثم الجاري ثم الطارئ، والأحدث فوق الأقدم
+    // ترتيب الرسم: المكتمل أولاً ثم الجاري ثم الطارئ، والأحدث فوق الأقدم — وتظهر كشارة على زاوية العلم
     const rank = r => r.status === "completed" ? 0 : r.urgent ? 2 : 1;
     all.filter(r => r.location && r.location.lat != null && r.status !== "rejected")
       .sort((x, y) => rank(x) - rank(y) || (x.createdAt || 0) - (y.createdAt || 0)).forEach(r => {
       const open = r.status !== "completed", sos = r.urgent && open;
-      bigMap.point(r.location.lat, r.location.lng, { kind: sos ? "sos" : open ? "req" : "done", size: sos ? 30 : 26, pulse: sos, onClick: () => openDetail(r.id) });
+      bigMap.point(r.location.lat, r.location.lng, { kind: sos ? "sos" : open ? "req" : "done", size: sos ? 28 : 22, dx: 13, dy: 12, pulse: sos, onClick: () => openDetail(r.id) });
     });
-    $("#legend").innerHTML = ["mission", "res", "fac", "req", "done", "sos"].map(k => `<span>${UI.tileSvg(k, 20)}${UI.MAPK[k].l}</span>`).join("");
+    const flagLg = `<img src="${UI.flagSrc("ae")}" alt="" style="width:24px;height:18px;border:1.5px solid #fff;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,.4)">`;
+    $("#legend").innerHTML = `<span>${flagLg}هيئة دبلوماسية</span><span><i style="background:#A8821F;width:14px;height:14px;border:2px solid #fff"></i>منزل قنصل</span><span><i style="background:#0A5C3C;width:18px;height:18px;border:2px solid #fff;box-shadow:0 0 0 1px #0A5C3C"></i>مجموعة مواقع</span>`
+      + ["req", "done", "sos"].map(k => `<span>${UI.tileSvg(k, 20)}${UI.MAPK[k].l}</span>`).join("");
+  }
+
+  // أدوات الخارطة
+  document.querySelectorAll("#siteMode button").forEach(b => b.onclick = () => {
+    siteMode = b.dataset.m; document.querySelectorAll("#siteMode button").forEach(x => x.classList.toggle("on", x === b)); renderMap();
+  });
+  $("#addSiteBtn").onclick = () => siteForm();
+  $("#unplacedBtn").onclick = () => unplacedList();
+  $("#expBtn").onclick = () => exportSites();
+  $("#impBtn").onclick = () => { $("#impFile").value = ""; $("#impFile").click(); };
+  $("#impFile").onchange = e => { const f = e.target.files[0]; if (f) importSites(f); };
+
+  function sitePopup(st) {
+    const tip = bigMap.showTip(`<button class="tip-x" data-tx>${UI.ic("x")}</button>
+      <div class="tip-h"><img src="${UI.flagSrc(st.code)}" alt=""><div><b>${esc(st.name)}</b><small>${TYPE_AR[st.type] || "قنصلية"} · ${esc(countryAr(st.code))}</small></div></div>
+      <span>${UI.ic("pin")} ${esc(st.area || "—")}</span>${st.address ? `<span>${esc(st.address)}</span>` : ""}
+      <span class="num" dir="ltr" style="text-align:end">${st.lat.toFixed(6)}, ${st.lng.toFixed(6)}</span>
+      <div class="tip-a"><a class="btn btn-gold btn-sm" target="_blank" rel="noopener" href="https://www.google.com/maps?q=${st.lat},${st.lng}">${UI.ic("pin")} فتح في خرائط جوجل</a>
+        <button class="btn btn-o btn-sm" data-te>تعديل</button><button class="btn btn-o btn-sm" data-td style="color:var(--red)">${UI.ic("trash")}</button></div>`, st.lat, st.lng);
+    tip.classList.add("site");
+    tip.querySelector("[data-tx]").onclick = () => bigMap.hideTip();
+    tip.querySelector("[data-te]").onclick = () => { bigMap.hideTip(); siteForm(st); };
+    tip.querySelector("[data-td]").onclick = () => { bigMap.hideTip(); deleteSite(st); };
+  }
+
+  async function saveSites(list) { try { await Store.saveSites(list); } catch (e) { UI.toast("تعذر الحفظ: " + e.message, "err"); throw e; } }
+  function deleteSite(st) {
+    confirmBox("حذف موقع", `سيُحذف «${esc(st.name)}» من الكشف والخارطة.`, "حذف", async () => { await saveSites(sites.filter(x => x.id !== st.id)); UI.toast("تم حذف الموقع"); }, true);
+  }
+
+  async function siteForm(st) {
+    const edit = !!st; st = st || { type: "consulate", name: "", code: "", area: "", address: "", lat: null, lng: null };
+    const codes = await flagCodes();
+    const opts = codes.map(c => [c, UI.countryName(c)]).filter(x => x[1]).sort((a, b) => a[1].localeCompare(b[1], "ar"));
+    openModal(`<div class="modal-h"><h3>${UI.ic("pin")}<span>${edit ? "تعديل موقع" : "إضافة موقع"}</span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b"><div class="grid2">
+        <div class="field"><label>النوع</label><div class="seg wide" id="sfType"><button data-t="consulate" class="${st.type !== "res" ? "on" : ""}">قنصلية</button><button data-t="res" class="${st.type === "res" ? "on" : ""}">منزل قنصل</button></div></div>
+        <div class="field"><label>الدولة</label><div class="sf-cty"><img id="sfFlag" alt=""><select id="sfCode"><option value="">— اختر الدولة —</option>${opts.map(([c, n]) => `<option value="${c.toUpperCase()}" ${c.toUpperCase() === String(st.code).toUpperCase() ? "selected" : ""}>${esc(n)}</option>`).join("")}</select></div></div>
+        <div class="field full"><label>الاسم <span class="rq">*</span></label><input id="sfName" value="${esc(st.name)}" placeholder="مثال: القنصلية العامة لـ…"></div>
+        <div class="field"><label>المنطقة</label><input id="sfArea" value="${esc(st.area || "")}"></div>
+        <div class="field"><label>العنوان</label><input id="sfAddr" value="${esc(st.address || "")}"></div>
+        <div class="field"><label>خط العرض</label><input id="sfLat" dir="ltr" inputmode="decimal" value="${hasXY(st) ? st.lat : ""}" placeholder="25.2..."></div>
+        <div class="field"><label>خط الطول</label><input id="sfLng" dir="ltr" inputmode="decimal" value="${hasXY(st) ? st.lng : ""}" placeholder="55.3..."></div>
+        <div class="field full"><label>أو اضغط على الخارطة لتحديد الموقع</label><div id="sfMap" class="mapbox" style="height:260px"></div></div>
+      </div></div>
+      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-p" id="sfSave">${UI.ic("check")} حفظ</button></div>`);
+    let type = st.type === "res" ? "res" : "consulate";
+    document.querySelectorAll("#sfType button").forEach(b => b.onclick = () => { type = b.dataset.t; document.querySelectorAll("#sfType button").forEach(x => x.classList.toggle("on", x === b)); });
+    const flag = () => { const c = $("#sfCode").value; $("#sfFlag").src = c ? UI.flagSrc(c) : ""; $("#sfFlag").style.visibility = c ? "visible" : "hidden"; };
+    $("#sfCode").onchange = flag; flag();
+    let mm = null;
+    const num = v => { const n = parseFloat(String(v).replace(",", ".")); return isNaN(n) ? null : n; };
+    UI.emap("sfMap", hasXY(st) ? [st.lat, st.lng] : [25.2, 55.27], hasXY(st) ? 15 : 10).then(m => {
+      mm = m; miniMap = m;
+      if (hasXY(st)) m.marker(st.lat, st.lng, { draggable: true });
+      m.onPick((la, ln) => { $("#sfLat").value = la.toFixed(6); $("#sfLng").value = ln.toFixed(6); });
+    }).catch(() => { $("#sfMap").innerHTML = '<div class="empty">تعذر تحميل الخارطة — أدخل الإحداثيات يدوياً.</div>'; });
+    const moveMk = () => { const la = num($("#sfLat").value), ln = num($("#sfLng").value); if (mm && la != null && ln != null) { mm.marker(la, ln, { draggable: true }); mm.goTo(la, ln, 15); } };
+    $("#sfLat").onchange = moveMk; $("#sfLng").onchange = moveMk;
+    $("#sfSave").onclick = async () => {
+      const name = $("#sfName").value.trim(), code = $("#sfCode").value, la = num($("#sfLat").value), ln = num($("#sfLng").value);
+      if (!name) return UI.toast("يرجى إدخال الاسم", "warn");
+      if (!code) return UI.toast("يرجى اختيار الدولة", "warn");
+      if ((la == null) !== (ln == null)) return UI.toast("يرجى إدخال خط العرض وخط الطول معاً", "warn");
+      if (la != null && !inDubai(la, ln)) return UI.toast("الإحداثيات خارج حدود إمارة دبي", "warn");
+      const rec = Object.assign({}, st, { type, name, code, area: $("#sfArea").value.trim(), address: $("#sfAddr").value.trim(), lat: la, lng: ln, updatedAt: Date.now(), updatedBy: officer });
+      if (!edit) rec.id = (type === "res" ? "h-" : "s-") + code.toLowerCase() + "-" + Date.now().toString(36);
+      const dup = sites.find(x => x.id !== rec.id && normName(x.name) === normName(name) && (x.type || "consulate") === type);
+      if (dup) return UI.toast("يوجد موقع بالاسم نفسه في الكشف", "warn");
+      $("#sfSave").disabled = true;
+      try { await saveSites(edit ? sites.map(x => x.id === rec.id ? rec : x) : sites.concat(rec)); closeModal(); UI.toast(edit ? "تم حفظ التعديل" : "تمت إضافة الموقع");
+        if (la != null && bigMap) bigMap.goTo(la, ln, 15.5); } catch (e) { $("#sfSave").disabled = false; }
+    };
+  }
+
+  function unplacedList() {
+    const L = sites.filter(x => !hasXY(x));
+    openModal(`<div class="modal-h"><h3>${UI.ic("pin")}<span>مواقع غير محددة</span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b"><p class="muted" style="margin-top:0">مواقع في الكشف بلا إحداثيات، فلا تظهر على الخارطة.</p>
+      <div class="site-list">${L.map(x => `<div class="site-row"><img src="${UI.flagSrc(x.code)}" alt=""><div><b>${esc(x.name)}</b><small>${esc([x.area, x.address].filter(Boolean).join(" — ") || "—")}</small></div><button class="btn btn-o btn-sm" data-e="${x.id}">تحديد الموقع</button></div>`).join("") || '<div class="empty">لا توجد مواقع غير محددة.</div>'}</div></div>`);
+    document.querySelectorAll("#modal [data-e]").forEach(b => b.onclick = () => siteForm(sites.find(x => x.id === b.dataset.e)));
+  }
+
+  /* ---------- Excel ---------- */
+  let xlsxP = null;
+  const loadXLSX = () => xlsxP || (xlsxP = new Promise((res, rej) => {
+    if (window.XLSX) return res(window.XLSX);
+    const sc = document.createElement("script"); sc.src = "https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js";
+    sc.onload = () => res(window.XLSX); sc.onerror = () => { xlsxP = null; rej(new Error("تعذر تحميل مكتبة Excel")); }; document.head.appendChild(sc);
+  }));
+  const COLS = [["name", ["اسم الهيئة الدبلوماسية", "الاسم", "اسم الموقع", "اسم الهيئة"]], ["code", ["رمز الدولة", "الرمز"]], ["type", ["النوع"]],
+    ["sectorMain", ["القطاع الرئيسي"]], ["sector", ["القطاع"]], ["area", ["المنطقة"]], ["address", ["العنوان"]], ["makani", ["رقم مكاني"]],
+    ["lat", ["خط العرض"]], ["lng", ["خط الطول"]], ["note", ["ملاحظات"]]];
+
+  async function exportSites() {
+    try {
+      const X = await loadXLSX();
+      const head = ["م", "اسم الهيئة الدبلوماسية", "النوع", "رمز الدولة", "الدولة", "القطاع الرئيسي", "القطاع", "المنطقة", "العنوان", "رقم مكاني", "خط العرض", "خط الطول", "ملاحظات"];
+      const rows = sites.map((x, i) => [i + 1, x.name, TYPE_AR[x.type] || "قنصلية", x.code, countryAr(x.code), x.sectorMain || "", x.sector || "", x.area || "", x.address || "", x.makani || "",
+        hasXY(x) ? x.lat : "—", hasXY(x) ? x.lng : "—", x.note || ""]);
+      const d = new Date(), stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const ws = X.utils.aoa_to_sheet([["كشف مواقع الهيئات الدبلوماسية بإمارة دبي"], [`إدارة أمن الهيئات والمنشآت الحيوية • الإجمالي: ${sites.length} • تاريخ التصدير: ${stamp}`], head, ...rows]);
+      ws["!merges"] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: head.length - 1 } }, { s: { r: 1, c: 0 }, e: { r: 1, c: head.length - 1 } }];
+      ws["!cols"] = [5, 42, 12, 10, 18, 12, 10, 18, 40, 14, 12, 12, 30].map(w => ({ wch: w }));
+      ws["!views"] = [{ RTL: true }];
+      const wb = X.utils.book_new(); wb.Workbook = { Views: [{ RTL: true }] }; X.utils.book_append_sheet(wb, ws, "القنصليات");
+      X.writeFile(wb, `كشف القنصليات ومواقعها ${stamp}.xlsx`);
+    } catch (e) { UI.toast(e.message, "err"); }
+  }
+
+  async function importSites(file) {
+    let X; try { X = await loadXLSX(); } catch (e) { return UI.toast(e.message, "err"); }
+    const codes = new Set((await flagCodes()).map(c => c.toUpperCase()));
+    const wb = X.read(await file.arrayBuffer(), { type: "array" });
+    const aoa = X.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: "", raw: true });
+    const hi = aoa.findIndex(r => r.some(c => COLS[0][1].includes(String(c).trim())));
+    if (hi < 0) return UI.toast("لم يُعثر على عمود الاسم في الملف (مثل «اسم الهيئة الدبلوماسية»)", "err");
+    const hdr = aoa[hi].map(c => String(c).trim()), idx = {};
+    COLS.forEach(([k, names]) => { const i = hdr.findIndex(h => names.includes(h)); if (i > -1) idx[k] = i; });
+    if (idx.code == null || idx.lat == null || idx.lng == null) return UI.toast("الملف يجب أن يحتوي على الأعمدة: الاسم، رمز الدولة، خط العرض، خط الطول", "err");
+    const num = v => { if (typeof v === "number") return v; const n = parseFloat(String(v).replace(/[^\d.\-]/g, "")); return isNaN(n) ? null : n; };
+    const out = [];
+    aoa.slice(hi + 1).forEach((r, k) => {
+      const g = key => idx[key] != null ? r[idx[key]] : "";
+      const name = String(g("name")).trim(); if (!name) return;
+      const code = String(g("code")).trim().toUpperCase(), lat = num(g("lat")), lng = num(g("lng"));
+      const type = /منزل/.test(String(g("type"))) ? "res" : "consulate";
+      const errs = [];
+      if (lat == null || lng == null) errs.push("إحداثيات ناقصة");
+      else if (!inDubai(lat, lng)) errs.push("إحداثيات خارج دبي");
+      if (!codes.has(code)) errs.push(code ? "رمز دولة غير معروف" : "رمز الدولة ناقص");
+      const rec = { type, name, code, sectorMain: String(g("sectorMain")).trim(), sector: String(g("sector")).trim(), area: String(g("area")).trim(), address: String(g("address")).trim(), makani: String(g("makani")).trim(), lat, lng, note: String(g("note")).trim() };
+      const dup = sites.find(x => normName(x.name) === normName(name) && (x.type || "consulate") === type);
+      out.push({ row: hi + k + 2, rec, errs, dup, act: dup ? "update" : "add" });
+    });
+    const ok = out.filter(x => !x.errs.length), bad = out.filter(x => x.errs.length), dups = ok.filter(x => x.dup), news = ok.filter(x => !x.dup);
+    openModal(`<div class="modal-h"><h3>${UI.ic("download")}<span>معاينة الإدراج من Excel</span></h3><button class="x-btn" data-close>${UI.ic("x")}</button></div>
+      <div class="modal-b">
+        <div class="imp-sum"><div><b class="num">${news.length}</b>موقع جديد</div><div><b class="num">${dups.length}</b>موجود مسبقاً</div><div class="${bad.length ? "bad" : ""}"><b class="num">${bad.length}</b>صفوف بها أخطاء</div></div>
+        ${dups.length ? `<h4 class="imp-h">مواقع موجودة بالاسم نفسه <span class="imp-all"><button class="btn btn-o btn-sm" data-all="update">تحديث الكل</button><button class="btn btn-o btn-sm" data-all="skip">تجاوز الكل</button></span></h4>
+          <div class="site-list">${dups.map((x, i) => `<div class="site-row"><img src="${UI.flagSrc(x.rec.code)}" alt=""><div><b>${esc(x.rec.name)}</b><small>صف ${x.row}</small></div>
+            <div class="seg" data-d="${i}"><button data-a="update" class="on">تحديث</button><button data-a="skip">تجاوز</button></div></div>`).join("")}</div>` : ""}
+        ${bad.length ? `<h4 class="imp-h">صفوف لن تُضاف</h4><div class="site-list">${bad.map(x => `<div class="site-row err"><span class="num">صف ${x.row}</span><div><b>${esc(x.rec.name)}</b><small>${x.errs.join(" · ")}</small></div></div>`).join("")}</div>` : ""}
+      </div>
+      <div class="modal-f"><button class="btn btn-o" data-close>إلغاء</button><button class="btn btn-p" id="impGo" ${news.length + dups.length ? "" : "disabled"}>${UI.ic("check")} تنفيذ الإدراج</button></div>`);
+    const paint = () => document.querySelectorAll("#modal [data-d]").forEach(sg => sg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.a === dups[+sg.dataset.d].act)));
+    document.querySelectorAll("#modal [data-d] button").forEach(b => b.onclick = () => { dups[+b.parentNode.dataset.d].act = b.dataset.a; paint(); });
+    document.querySelectorAll("#modal [data-all]").forEach(b => b.onclick = () => { dups.forEach(x => x.act = b.dataset.all); paint(); });
+    $("#impGo").onclick = async () => {
+      let list = sites.slice(), nAdd = 0, nUp = 0;
+      news.forEach(x => { list.push(Object.assign({ id: (x.rec.type === "res" ? "h-" : "s-") + x.rec.code.toLowerCase() + "-" + Math.random().toString(36).slice(2, 8), updatedAt: Date.now(), updatedBy: officer }, x.rec)); nAdd++; });
+      dups.filter(x => x.act === "update").forEach(x => { list = list.map(s0 => s0.id === x.dup.id ? Object.assign({}, s0, x.rec, { updatedAt: Date.now(), updatedBy: officer }) : s0); nUp++; });
+      $("#impGo").disabled = true;
+      try { await saveSites(list); closeModal(); UI.toast(`تمت إضافة ${nAdd} وتحديث ${nUp} موقع`); } catch (e) { $("#impGo").disabled = false; }
+    };
   }
 
   /* ---------- تبويب التقارير ---------- */

@@ -94,9 +94,18 @@
 
   <!-- الخارطة -->
   <section id="v-map" hidden>
-    <div class="sec-h" style="margin-top:0"><h2>مواقع الطلبات والمنشآت المؤمنة</h2><div class="legend" id="legend"></div></div>
-    <div class="card" style="padding:8px"><div id="bigMap" class="mapbox" style="height:560px"></div></div>
-    <div class="map-note">في النسخة الرسمية تُعرض على خارطة شرطة دبي الداخلية المعتمدة.</div>
+    <div class="sec-h" style="margin-top:0"><h2>خارطة القنصليات والطلبات</h2><div class="legend" id="legend"></div></div>
+    <div class="map-tools">
+      <div class="seg" id="siteMode"><button data-m="flags" class="on">الأعلام</button><button data-m="points">النقاط</button></div>
+      <span class="sp"></span>
+      <button class="btn btn-o btn-sm" id="unplacedBtn" hidden></button>
+      <button class="btn btn-o btn-sm" id="impBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>إدراج من Excel</button>
+      <button class="btn btn-o btn-sm" id="expBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M12 21V9M7 14l5-5 5 5M5 3h14"/></svg>تصدير Excel</button>
+      <button class="btn btn-p btn-sm" id="addSiteBtn"><svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>إضافة موقع</button>
+      <input type="file" id="impFile" accept=".xlsx,.xls,.csv" hidden>
+    </div>
+    <div class="card" style="padding:8px"><div id="bigMap" class="mapbox" style="height:600px"></div></div>
+    <div class="map-note" id="sitesNote"></div>
   </section>
 
   <!-- التحقق -->
@@ -130,6 +139,7 @@
 <div class="modal" id="modal"></div>
 
 <script src="assets/js/config.js"></script>
+<script src="assets/js/sites.js"></script>
 <script src="assets/js/data.js"></script>
 <script src="assets/js/police.js"></script>
 <script src="assets/js/brand-fit.js"></script>

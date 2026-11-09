@@ -128,35 +128,26 @@
       fields: [] }
   ];
 
-  /* ---------- البعثات التجريبية (أسماء ومواقع افتراضية) ----------
-     cons = موقع القنصلية، res = منزل القنصل (same = داخل مبنى القنصلية) */
-  const M = (ar, en, consul, officer, phone, natDay, cons, res) => ({ ar, en, consul, officer, phone, natDay, type: "قنصلية عامة",
-    lat: cons[0], lng: cons[1], cons: { lat: cons[0], lng: cons[1] }, res: res ? { lat: res[0], lng: res[1], same: false } : { lat: cons[0], lng: cons[1], same: true } });
-  // أسماء القنصليات حقيقية ومواقعها تقريبية · أسماء القناصل ومواقع المنازل المستقلة افتراضية
-  const MISSIONS = {
-    m1:  M("القنصلية العامة للولايات المتحدة الأمريكية", "Consulate General of the United States of America", "السيد/ ماركوس فيلدر", "السيد/ يوناس بيرغ", "04 000 1101", "07-04", [25.2493, 55.3083]),
-    m2:  M("السفارة البريطانية — مكتب دبي", "British Embassy — Dubai Office", "السيدة/ إيلينا روسي", "السيد/ توماس كلاين", "04 000 1102", "06-14", [25.2525, 55.2955]),
-    m3:  M("القنصلية العامة لجمهورية الهند", "Consulate General of India", "السيد/ رافاييل مونتيرو", "السيدة/ صوفيا لاريا", "04 000 1103", "08-15", [25.2445, 55.303]),
-    m4:  M("القنصلية العامة لجمهورية باكستان الإسلامية", "Consulate General of Pakistan", "السيد/ كينجي ساتو", "السيد/ أوليفر هانت", "04 000 1104", "03-23", [25.2386, 55.3122]),
-    m5:  M("القنصلية العامة للمملكة العربية السعودية", "Consulate General of the Kingdom of Saudi Arabia", "السيدة/ آنا كوفاتش", "السيد/ ميلان نوفاك", "04 000 1105", "09-23", [25.2465, 55.3165]),
-    m6:  M("القنصلية العامة لجمهورية الصين الشعبية", "Consulate General of the People's Republic of China", "السيد/ لوكاس فيرمير", "السيدة/ إيما ديكر", "04 000 1106", "10-01", [25.2298, 55.3195]),
-    m7:  M("القنصلية العامة لجمهورية فرنسا", "Consulate General of France", "السيد/ داميان كروز", "السيد/ بابلو ريفيرا", "04 000 1107", "07-14", [25.1865, 55.2745], [25.1418, 55.2205]),
-    m8:  M("القنصلية العامة لروسيا الاتحادية", "Consulate General of the Russian Federation", "السيدة/ نورا ليندكفيست", "السيد/ إريك سوندبرغ", "04 000 1108", "06-12", [25.2412, 55.2915], [25.2186, 55.4152]),
-    m9:  M("القنصلية العامة لليابان", "Consulate General of Japan", "السيد/ أدريان بوبيسكو", "السيدة/ إيوانا مارين", "04 000 1109", "02-23", [25.2195, 55.281], [25.0712, 55.1684]),
-    m10: M("القنصلية العامة لجمهورية ألمانيا الاتحادية", "Consulate General of the Federal Republic of Germany", "السيد/ هنري دوبوا", "السيدة/ كلارا موريه", "04 000 1110", "10-03", [25.229, 55.2675], [25.1123, 55.2018])
+  /* ---------- كشف القنصليات (assets/js/sites.js) ---------- */
+  const SITES0 = (window.DIP_SITES || []).map(x => Object.assign({}, x));
+  const SITE = Object.fromEntries(SITES0.map(x => [x.id, x]));
+
+  /* ---------- القنصليات المتاحة لتسجيل الدخول في التشغيل التجريبي ----------
+     الأسماء والمواقع من الكشف · أسماء القناصل افتراضية · منزل القنصل داخل مبنى القنصلية */
+  const LOGIN = {
+    "c-us": { en: "Consulate General of the United States of America", consul: "السيد/ ماركوس فيلدر", officer: "السيد/ يوناس بيرغ", phone: "04 000 1101", natDay: "07-04" },
+    "c-in": { en: "Consulate General of India", consul: "السيد/ رافاييل مونتيرو", officer: "السيدة/ صوفيا لاريا", phone: "04 000 1103", natDay: "08-15" },
+    "c-fr": { en: "Consulate General of France", consul: "السيد/ داميان كروز", officer: "السيد/ بابلو ريفيرا", phone: "04 000 1107", natDay: "07-14" },
+    "c-kr": { en: "Consulate General of the Republic of Korea", consul: "السيد/ أدريان بوبيسكو", officer: "السيدة/ إيوانا مارين", phone: "04 000 1109", natDay: "10-03" },
+    "c-eg": { en: "Consulate General of the Arab Republic of Egypt", consul: "السيد/ هنري دوبوا", officer: "السيدة/ كلارا موريه", phone: "04 000 1110", natDay: "07-23" }
   };
-
-
-  /* ---------- منشآت هامة (مواقع تقريبية للتشغيل التجريبي) ---------- */
-  const FACILITIES = [
-    { id: "f1", ar: "كنيسة — منطقة عود ميثاء", type: "church", lat: 25.2345, lng: 55.3065 },
-    { id: "f2", ar: "كنيسة — مجمع دور العبادة بجبل علي", type: "church", lat: 25.002, lng: 55.111 },
-    { id: "f3", ar: "المعبد الهندوسي — جبل علي", type: "temple", lat: 25.008, lng: 55.103 },
-    { id: "f4", ar: "المعبد الهندوسي — بر دبي", type: "temple", lat: 25.2633, lng: 55.2972 },
-    { id: "f5", ar: "مركز دبي التجاري العالمي", type: "landmark", lat: 25.2253, lng: 55.2856 },
-    { id: "f6", ar: "مصرف الإمارات المركزي — فرع دبي", type: "bank", lat: 25.2586, lng: 55.3027 }
-  ];
-  const FAC_TYPES = { church: "دار عبادة (كنيسة)", temple: "دار عبادة (معبد)", landmark: "معلم ومركز حيوي", bank: "منشأة مالية حيوية" };
+  const MISSIONS = {};
+  Object.entries(LOGIN).forEach(([id, x]) => {
+    const st = SITE[id]; if (!st) return;
+    MISSIONS[id] = Object.assign({ ar: st.name, type: "قنصلية عامة", code: st.code, area: st.area, address: st.address, lat: st.lat, lng: st.lng,
+      cons: { lat: st.lat, lng: st.lng }, res: { lat: st.lat, lng: st.lng, same: true } }, x);
+  });
+  const FACILITIES = [], FAC_TYPES = {};
 
   /* ---------- الحالات ---------- */
   const STATUSES = {
@@ -214,10 +205,10 @@
       const s = svc(sid), created = now - ageH * HOUR, urgent = sid === "e1";
       const r = {
         id: "seed-" + Math.random().toString(36).slice(2, 10), ref: urgent ? makeRef().replace("DIP", "SOS") : makeRef(), missionId: mission,
-        missionName: MISSIONS[mission].ar, serviceId: sid, category: s.cat, unit: extra.unit || unitFor(s), source: urgent ? "direct" : "mofa",
+        missionName: SITE[mission].name, serviceId: sid, category: s.cat, unit: extra.unit || unitFor(s), source: urgent ? "direct" : "mofa",
         fields, location: extra.location || null, attachments: [], photos: [],
         status: "new", urgent, slaHours: s.sla, createdAt: created, updatedAt: created,
-        history: [{ status: "new", at: created, by: MISSIONS[mission].ar, note: urgent ? "بلاغ طارئ — وصل مباشرة" : "وارد من منصة وزارة الخارجية" }], notes: []
+        history: [{ status: "new", at: created, by: SITE[mission].name, note: urgent ? "بلاغ طارئ — وصل مباشرة" : "وارد من منصة وزارة الخارجية" }], notes: []
       };
       const idx = FLOW.indexOf(status);
       const steps = status === "rejected" ? ["review", "rejected"] : FLOW.slice(1, idx + 1);
@@ -234,33 +225,33 @@
       if (extra.report) r.report = Object.assign({ at: r.updatedAt, by: "ضابط المناوبة", photos: [] }, extra.report);
       return r;
     };
-    const L = (m, k = "cons") => ({ lat: MISSIONS[m][k].lat, lng: MISSIONS[m][k].lng, label: k === "res" ? "منزل القنصل" : "مقر القنصلية" });
+    const L = m => ({ lat: SITE[m].lat, lng: SITE[m].lng, label: "مقر القنصلية" });
     return [
-      mk("m1", "s2", 3, "new", { event: "حفل استقبال رسمي", date: "2026-11-20", tfrom: "19:00", tto: "23:00", guests: "350", vip: "نعم", notes: "حضور القنصل العام وعدد من رؤساء البعثات" }, { location: L("m1"), unit: "coord" }),
-      mk("m5", "a2", 1.5, "new", { guest: "وزير الخارجية", flight: "EK 0003", date: "2026-11-09", time: "08:40", count: "4" }, { unit: "coord" }),
-      mk("m2", "a1", 7, "review", { delegation: "وفد وزارة التجارة", flight: "EK 0000", date: "2026-11-09", time: "14:30", terminal: "المبنى 3", count: "6" }),
-      mk("m3", "s3", 20, "approved", { area: "منطقة الميناء — البوابة 4", date: "2026-11-07", persons: "ماريا لوبيز\nخوان بيريز", plate: "دبلوماسي 1234", purpose: "زيارة سفينة ترفع علم الدولة" }),
-      mk("m4", "t2", 26, "inprogress", { date: "2026-11-06", time: "09:00", fromLoc: "مقر القنصلية — ديرة", toLoc: "مركز دبي التجاري العالمي", cars: "4" }),
-      mk("m7", "s1", 40, "inprogress", { facility: "منزل القنصل العام", ftype: "سكن رئيس البعثة", from: "2026-11-05", to: "2026-11-08", reason: "زيارة رسمية لوفد رفيع المستوى" }, { location: L("m7", "res") }),
-      mk("m1", "p1", 60, "completed", { inmate: "نزيل افتراضي (أ)", inmateNo: "", visitors: "القنصل العام\nالملحق القانوني", date: "2026-11-02" }, { rating: 5, ratingNote: "خدمة سريعة ومنظمة" }),
-      mk("m2", "t1", 110, "completed", { kind: "تجديد", vehicle: "سيارة صالون — 2024", chassis: "XXXXXXXX0000", plate: "دبلوماسي 5678" }, { rating: 4 }),
-      mk("m6", "a3", 130, "completed", { plate: "دبلوماسي 2211", driver: "سائق افتراضي", date: "2026-10-30", purpose: "استقبال وفد رسمي" }, { rating: 5, speed: 0.6 }),
-      mk("m8", "s1", 200, "completed", { facility: "منزل القنصل العام", ftype: "سكن رئيس البعثة", from: "2026-10-25", to: "2026-10-28", reason: "زيارة رسمية لوزير الخارجية" },
-        { location: L("m8", "res"), rating: 4, speed: 0.9, report: { date: "2026-10-28", tfrom: "07:00", tto: "22:00", leader: "النقيب/ ضابط افتراضي", members: "8", patrols: "3", summary: "نُفِّذت خطة التأمين وفق المخطط، وتمت تغطية محيط المنزل على مدار فترة الزيارة دون تسجيل أي ملاحظات أمنية.", remarks: "تعاون ممتاز من ضابط الاتصال في البعثة.", recs: "التنسيق المسبق لمواقف المركبات المرافقة." } }),
-      mk("m3", "s2", 250, "completed", { event: "حفل استقبال رسمي", date: "2026-10-24", tfrom: "19:00", tto: "22:30", guests: "220", vip: "نعم", notes: "" },
-        { location: L("m3"), rating: 5, report: { date: "2026-10-24", tfrom: "17:30", tto: "23:00", leader: "الملازم أول/ ضابط افتراضي", members: "12", patrols: "4", summary: "تم تأمين موقع الفعالية والمداخل وتنظيم حركة الدخول، وانتهت الفعالية بسلام.", remarks: "ارتفاع الحضور عن العدد المتوقع بنسبة بسيطة.", recs: "زيادة عدد البوابات في الفعاليات التي يتجاوز حضورها 200 شخص." } }),
-      mk("m2", "p3", 90, "rejected", { inmate: "نزيل افتراضي (ب)", kind: "تسليم مستندات", details: "تسليم وثائق سفر" }),
-      mk("m9", "s4", 300, "completed", { vipTitle: "رئيس البرلمان", arrive: "2026-10-22", days: "2", program: "زيارة رسمية ولقاءات" }, { location: L("m9", "res"), rating: 3, speed: 1.3 }),
-      mk("m10", "e1", 140, "completed", { type: "تجمهر أمام المقر", desc: "تجمع عدد من الأشخاص أمام مدخل القنصلية.", where: "cons" }, { location: L("m10"), speed: 4,
+      mk("c-gb", "s2", 3, "new", { event: "حفل استقبال رسمي", date: "2026-11-20", tfrom: "19:00", tto: "23:00", guests: "350", vip: "نعم", notes: "حضور القنصل العام وعدد من رؤساء البعثات" }, { location: L("c-gb"), unit: "coord" }),
+      mk("c-ru", "a2", 1.5, "new", { guest: "وزير الخارجية", flight: "EK 0003", date: "2026-11-09", time: "08:40", count: "4" }, { unit: "coord" }),
+      mk("c-sa", "a1", 7, "review", { delegation: "وفد وزارة التجارة", flight: "EK 0000", date: "2026-11-09", time: "14:30", terminal: "المبنى 3", count: "6" }),
+      mk("c-de", "s3", 20, "approved", { area: "منطقة الميناء — البوابة 4", date: "2026-11-07", persons: "ماريا لوبيز\nخوان بيريز", plate: "دبلوماسي 1234", purpose: "زيارة سفينة ترفع علم الدولة" }),
+      mk("c-pk", "t2", 26, "inprogress", { date: "2026-11-06", time: "09:00", fromLoc: "مقر القنصلية — ديرة", toLoc: "مركز دبي التجاري العالمي", cars: "4" }),
+      mk("c-it", "s1", 40, "inprogress", { facility: "مقر القنصلية العامة", ftype: "مقر البعثة", from: "2026-11-05", to: "2026-11-08", reason: "زيارة رسمية لوفد رفيع المستوى" }, { location: L("c-it") }),
+      mk("c-gb", "p1", 60, "completed", { inmate: "نزيل افتراضي (أ)", inmateNo: "", visitors: "القنصل العام\nالملحق القانوني", date: "2026-11-02" }, { rating: 5, ratingNote: "خدمة سريعة ومنظمة" }),
+      mk("c-sa", "t1", 110, "completed", { kind: "تجديد", vehicle: "سيارة صالون — 2024", chassis: "XXXXXXXX0000", plate: "دبلوماسي 5678" }, { rating: 4 }),
+      mk("c-jp", "a3", 130, "completed", { plate: "دبلوماسي 2211", driver: "سائق افتراضي", date: "2026-10-30", purpose: "استقبال وفد رسمي" }, { rating: 5, speed: 0.6 }),
+      mk("c-tr", "s1", 200, "completed", { facility: "مقر القنصلية العامة", ftype: "مقر البعثة", from: "2026-10-25", to: "2026-10-28", reason: "زيارة رسمية لوزير الخارجية" },
+        { location: L("c-tr"), rating: 4, speed: 0.9, report: { date: "2026-10-28", tfrom: "07:00", tto: "22:00", leader: "النقيب/ ضابط افتراضي", members: "8", patrols: "3", summary: "نُفِّذت خطة التأمين وفق المخطط، وتمت تغطية محيط المنزل على مدار فترة الزيارة دون تسجيل أي ملاحظات أمنية.", remarks: "تعاون ممتاز من ضابط الاتصال في البعثة.", recs: "التنسيق المسبق لمواقف المركبات المرافقة." } }),
+      mk("c-de", "s2", 250, "completed", { event: "حفل استقبال رسمي", date: "2026-10-24", tfrom: "19:00", tto: "22:30", guests: "220", vip: "نعم", notes: "" },
+        { location: L("c-de"), rating: 5, report: { date: "2026-10-24", tfrom: "17:30", tto: "23:00", leader: "الملازم أول/ ضابط افتراضي", members: "12", patrols: "4", summary: "تم تأمين موقع الفعالية والمداخل وتنظيم حركة الدخول، وانتهت الفعالية بسلام.", remarks: "ارتفاع الحضور عن العدد المتوقع بنسبة بسيطة.", recs: "زيادة عدد البوابات في الفعاليات التي يتجاوز حضورها 200 شخص." } }),
+      mk("c-sa", "p3", 90, "rejected", { inmate: "نزيل افتراضي (ب)", kind: "تسليم مستندات", details: "تسليم وثائق سفر" }),
+      mk("c-au", "s4", 300, "completed", { vipTitle: "رئيس البرلمان", arrive: "2026-10-22", days: "2", program: "زيارة رسمية ولقاءات" }, { location: L("c-au"), rating: 3, speed: 1.3 }),
+      mk("c-ch", "e1", 140, "completed", { type: "تجمهر أمام المقر", desc: "تجمع عدد من الأشخاص أمام مدخل القنصلية.", where: "cons" }, { location: L("c-ch"), speed: 4,
         report: { date: "2026-10-31", tfrom: "10:05", tto: "10:50", leader: "ضابط المناوبة", members: "6", patrols: "2", summary: "وصلت الدوريات خلال 7 دقائق، وتم تفريق التجمع بهدوء دون إصابات أو أضرار.", remarks: "", recs: "تكثيف الدوريات في محيط القنصلية خلال الأسبوع." } }),
-      mk("m4", "a4", 15, "review", { person: "دبلوماسي افتراضي", flight: "EK 0002", date: "2026-11-05", details: "تخليص إجراءات حقيبة دبلوماسية" })
+      mk("c-pk", "a4", 15, "review", { person: "دبلوماسي افتراضي", flight: "EK 0002", date: "2026-11-05", details: "تخليص إجراءات حقيبة دبلوماسية" })
     ];
   }
 
   /* ============================================================
      طبقة الحفظ — محلي
      ============================================================ */
-  const LS_KEY = "dip-platform-requests-v1";
+  const LS_KEY = "dip-platform-requests-v1", SITES_KEY = "dip-sites-v1";
   const LocalStore = {
     mode: "local", picker: true,
     _subs: [],
@@ -268,8 +259,8 @@
     _write(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {} this._emit(); },
     _emit() { const l = this._read() || []; this._subs.forEach(fn => fn(l)); },
     async init() {
-      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v4", "1"); } catch (e) {} }
-      else { try { if (!localStorage.getItem("dip-seed-v4")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v4", "1"); } } catch (e) {} }
+      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v5", "1"); } catch (e) {} }
+      else { try { if (!localStorage.getItem("dip-seed-v5")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v5", "1"); } } catch (e) {} }
       window.addEventListener("storage", e => { if (e.key === LS_KEY) this._emit(); });
     },
     subscribe(fn) { this._subs.push(fn); fn(this._read() || []); return () => { this._subs = this._subs.filter(f => f !== fn); }; },
@@ -280,7 +271,14 @@
     async seed() { const l = this._read() || []; this._write(l.concat(seedRequests())); },
     // تسجيل الدخول في الوضع المحلي = اختيار الحساب فقط
     async signIn(id) { return { id }; },
-    async signOut() {}
+    async signOut() {},
+    // كشف المواقع
+    _sitesRead() { try { const v = JSON.parse(localStorage.getItem(SITES_KEY) || "null"); if (Array.isArray(v)) return v; } catch (e) {} return SITES0.map(x => Object.assign({}, x)); },
+    _siteSubs: [],
+    subscribeSites(fn) { this._siteSubs.push(fn); fn(this._sitesRead());
+      if (!this._sitesBound) { this._sitesBound = true; window.addEventListener("storage", e => { if (e.key === SITES_KEY) { const l = this._sitesRead(); this._siteSubs.forEach(f => f(l)); } }); }
+      return () => { this._siteSubs = this._siteSubs.filter(f => f !== fn); }; },
+    async saveSites(list) { try { localStorage.setItem(SITES_KEY, JSON.stringify(list)); } catch (e) {} this._siteSubs.forEach(f => f(list)); }
   };
 
   /* ============================================================
@@ -311,7 +309,7 @@
     subscribe(fn, missionId) {
       let q = this.db.collection("requests");
       if (missionId) q = q.where("missionId", "==", missionId);
-      return q.onSnapshot(snap => fn(snap.docs.map(d => Object.assign({ id: d.id }, d.data()))),
+      return q.onSnapshot(snap => fn(snap.docs.filter(d => d.id[0] !== "_").map(d => Object.assign({ id: d.id }, d.data()))),
         err => { console.error(err); window.UI && UI.toast("خطأ في الاتصال بقاعدة البيانات: " + err.message, "err"); });
     },
     async add(r) { const ref = await this.db.collection("requests").add(r); r.id = ref.id; return r; },
@@ -319,16 +317,25 @@
     async seed() { const b = this.db.batch(); seedRequests().forEach(r => { const id = r.id; delete r.id; b.set(this.db.collection("requests").doc(id), r); }); await b.commit(); },
     async clear() {
       const snap = await this.db.collection("requests").get();
-      for (let i = 0; i < snap.docs.length; i += 400) { const b = this.db.batch(); snap.docs.slice(i, i + 400).forEach(d => b.delete(d.ref)); await b.commit(); }
+      for (let i = 0; i < snap.docs.length; i += 400) { const b = this.db.batch(); snap.docs.slice(i, i + 400).forEach(d => { if (d.id[0] !== "_") b.delete(d.ref); }); await b.commit(); }
     },
     async signIn(email, pass) { if (this.picker) return { id: email }; return this.auth.signInWithEmailAndPassword(email, pass); },
-    async signOut() { if (!this.picker) return this.auth.signOut(); }
+    async signOut() { if (!this.picker) return this.auth.signOut(); },
+    // كشف المواقع: مستند واحد داخل مجموعة الطلبات (requests/_sites) ضمن قواعد الحماية الحالية
+    _sitesDoc() { return this.db.collection("requests").doc("_sites"); },
+    subscribeSites(fn) {
+      return this._sitesDoc().onSnapshot(d => {
+        if (!d.exists) { this._sitesDoc().set({ list: SITES0, updatedAt: Date.now() }); fn(SITES0.map(x => Object.assign({}, x))); return; }
+        fn((d.data().list || []).map(x => Object.assign({}, x)));
+      }, err => { console.error(err); window.UI && UI.toast("تعذر تحميل كشف المواقع: " + err.message, "err"); });
+    },
+    async saveSites(list) { await this._sitesDoc().set({ list: JSON.parse(JSON.stringify(list)), updatedAt: Date.now() }); }
   };
 
   const cfg = (window.APP_CONFIG && window.APP_CONFIG.firebase) || {};
   const Store = cfg.apiKey ? FireStore : LocalStore;
 
-  window.DIP = { UNITS, SOURCES, CATEGORIES, SERVICES, MISSIONS, FACILITIES, FAC_TYPES, STATUSES, FLOW, svc, unitFor, fmtDate, makeRef, makePermitCode, esc, slaInfo, fmtDur, HOUR, DAY, Store };
+  window.DIP = { UNITS, SOURCES, CATEGORIES, SERVICES, MISSIONS, SITES0, SITE, FACILITIES, FAC_TYPES, STATUSES, FLOW, svc, unitFor, fmtDate, makeRef, makePermitCode, esc, slaInfo, fmtDur, HOUR, DAY, Store };
 })();
 
 /* ============================================================
@@ -408,8 +415,8 @@ window.UI = {
     if (this._esri) return this._esri;
     this._esri = new Promise((res, rej) => {
       const css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://js.arcgis.com/4.30/esri/themes/dark/main.css"; document.head.appendChild(css);
-      const go = () => window.require(["esri/Map", "esri/views/MapView", "esri/Graphic", "esri/layers/GraphicsLayer", "esri/config", "esri/intl"],
-        (Map, MapView, Graphic, GraphicsLayer, config, intl) => { try { intl.setLocale("ar"); } catch (e) {} res({ Map, MapView, Graphic, GraphicsLayer }); }, rej);
+      const go = () => window.require(["esri/Map", "esri/views/MapView", "esri/Graphic", "esri/layers/GraphicsLayer", "esri/config", "esri/intl", "esri/layers/FeatureLayer"],
+        (Map, MapView, Graphic, GraphicsLayer, config, intl, FeatureLayer) => { try { intl.setLocale("ar"); } catch (e) {} res({ Map, MapView, Graphic, GraphicsLayer, FeatureLayer }); }, rej);
       if (window.require && window.require.on) return go();
       const sc = document.createElement("script"); sc.src = "https://js.arcgis.com/4.30/"; sc.onload = go; sc.onerror = () => rej(new Error("تعذّر تحميل الخارطة")); document.head.appendChild(sc);
     });
@@ -449,6 +456,37 @@ window.UI = {
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${px}" height="${px}" viewBox="0 0 32 32"><defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${d.c}"/><stop offset="1" stop-color="${d.c}" stop-opacity=".72"/></linearGradient></defs><rect x="1.5" y="1.5" width="29" height="29" rx="9" fill="url(#${id})" stroke="${k === "sos" || k === "pick" ? "#fff" : "#f3dd8f"}" stroke-width="2"/><g transform="translate(6 6) scale(.83)">${d.g}</g></svg>`;
   },
   tileUrl(k) { return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(this.tileSvg(k, 64)); },
+  /* ---------- أعلام الدول ---------- */
+  flagSrc(code) { return "assets/img/flags/" + String(code || "").toLowerCase() + ".png"; },
+  countryName(code) {
+    try { if (!this._dn) this._dn = new Intl.DisplayNames(["ar"], { type: "region" }); const n = this._dn.of(String(code).toUpperCase()); return n && n !== String(code).toUpperCase() ? n : ""; } catch (e) { return ""; }
+  },
+  _flagCache: {},
+  // رمز العلم على الخارطة: علم بإطار أبيض رفيع وظل خفيف، ومنزل القنصل بأيقونة بيت ذهبية على الزاوية
+  flagMarker(code, type) {
+    const key = code + "|" + type; if (this._flagCache[key]) return this._flagCache[key];
+    return (this._flagCache[key] = new Promise(res => {
+      const img = new Image(); img.crossOrigin = "anonymous";
+      const draw = ok => {
+        const S = 2, W = 30, H = 22, pad = 6, house = type === "res";
+        const c = document.createElement("canvas"); c.width = (W + pad * 2 + (house ? 6 : 0)) * S; c.height = (H + pad * 2 + (house ? 6 : 0)) * S;
+        const x = c.getContext("2d"); x.scale(S, S);
+        const ox = pad + (house ? 6 : 0), oy = pad;
+        x.shadowColor = "rgba(0,0,0,.45)"; x.shadowBlur = 4; x.shadowOffsetY = 1.5;
+        x.fillStyle = "#fff"; x.beginPath(); x.roundRect ? x.roundRect(ox - 1.6, oy - 1.6, W + 3.2, H + 3.2, 3) : x.rect(ox - 1.6, oy - 1.6, W + 3.2, H + 3.2); x.fill();
+        x.shadowColor = "transparent";
+        if (ok) x.drawImage(img, ox, oy, W, H); else { x.fillStyle = "#0A5C3C"; x.fillRect(ox, oy, W, H); }
+        if (house) {
+          const cx = ox - 1, cy = oy + H + 1, r = 7.5;
+          x.fillStyle = "#A8821F"; x.strokeStyle = "#fff"; x.lineWidth = 1.6; x.beginPath(); x.arc(cx, cy, r, 0, Math.PI * 2); x.fill(); x.stroke();
+          x.strokeStyle = "#fff"; x.lineWidth = 1.5; x.lineJoin = "round"; x.beginPath();
+          x.moveTo(cx - 4, cy - .3); x.lineTo(cx, cy - 4); x.lineTo(cx + 4, cy - .3); x.moveTo(cx - 2.8, cy - 1.2); x.lineTo(cx - 2.8, cy + 3.4); x.lineTo(cx + 2.8, cy + 3.4); x.lineTo(cx + 2.8, cy - 1.2); x.stroke();
+        }
+        res({ url: c.toDataURL("image/png"), width: c.width / S, height: c.height / S, xoffset: house ? -3 : 0, yoffset: house ? -3 : 0 });
+      };
+      img.onload = () => draw(true); img.onerror = () => draw(false); img.src = this.flagSrc(code);
+    }));
+  },
   /* إنشاء خارطة. يعيد كائناً مبسّطاً:
      marker(lat,lng,{draggable}) · onPick(cb) · point(lat,lng,opts) · clear() · goTo(lat,lng,z) · destroy() */
   async emap(el, center, zoom = 15) {
@@ -468,10 +506,65 @@ window.UI = {
     sw.dataset.b = "night"; paint(); view.ui.add(sw, "top-right");
     // بطاقة معلومات بسيطة
     const tip = document.createElement("div"); tip.className = "map-tip"; tip.hidden = true; host.appendChild(tip);
-    const sym = (o = {}) => { const z = o.size || 26; return { type: "picture-marker", url: UI.tileUrl(o.kind || "req"), width: z + "px", height: z + "px" }; };
+    const sym = (o = {}) => { const z = o.size || 26; return { type: "picture-marker", url: UI.tileUrl(o.kind || "req"), width: z + "px", height: z + "px", xoffset: o.dx || 0, yoffset: o.dy || 0 }; };
     // نبض أحمر للبلاغات الطارئة (طبقة HTML فوق الخارطة)
     const pulses = [];
-    const placePulses = () => pulses.forEach(p => { const s = view.toScreen(p.pt); if (s) { p.el.style.left = s.x + "px"; p.el.style.top = s.y + "px"; } });
+    const placePulses = () => pulses.forEach(p => { const s = view.toScreen(p.pt); if (s) { p.el.style.left = (s.x + p.dx * 1.333) + "px"; p.el.style.top = (s.y - p.dy * 1.333) + "px"; } });
+    /* طبقة القنصليات: أعلام/نقاط مع تجميع عند الابتعاد */
+    let sitesL = null, sitesMode = "flags", sitesList = [], sitesOpt = {}, fanKey = "", fanFeats = [];
+    const CLUSTER_MAX_SCALE = 70000;
+    const cluster = () => ({ type: "cluster", clusterRadius: "50px", clusterMinSize: "24px", clusterMaxSize: "46px", popupEnabled: false,
+      symbol: { type: "simple-marker", style: "circle", color: "#0A5C3C", outline: { color: [255, 255, 255, 0.95], width: 2 } },
+      labelingInfo: [{ deconflictionStrategy: "none", labelPlacement: "center-center", labelExpressionInfo: { expression: "Text($feature.cluster_count, '#,###')" },
+        symbol: { type: "text", color: "#ffffff", font: { weight: "bold", size: "12px", family: "Arial" } } }] });
+    const syncCluster = () => { if (!sitesL) return; const want = view.scale > CLUSTER_MAX_SCALE; const has = !!sitesL.featureReduction; if (want !== has) sitesL.featureReduction = want ? cluster() : null; };
+    // توزيع المواقع ذات الإحداثيات المتطابقة في دائرة صغيرة حول النقطة
+    const fanGeom = (list) => {
+      const groups = {}; list.forEach(st => { const k = st.lat.toFixed(6) + "," + st.lng.toFixed(6); (groups[k] = groups[k] || []).push(st); });
+      const rM = 20 * (view.resolution || 10);
+      const out = {};
+      Object.values(groups).forEach(g => g.forEach((st, i) => {
+        if (g.length < 2) { out[st.id] = [st.lat, st.lng]; return; }
+        const a = (2 * Math.PI * i) / g.length - Math.PI / 2;
+        out[st.id] = [st.lat + (rM * Math.sin(a)) / 111320, st.lng + (rM * Math.cos(a)) / (111320 * Math.cos(st.lat * Math.PI / 180))];
+      }));
+      return out;
+    };
+    let buildQ = Promise.resolve();
+    const buildSites = () => (buildQ = buildQ.then(doBuild).catch(e => console.error("sites layer", e)));
+    async function doBuild() {
+      if (sitesL) { map.remove(sitesL); sitesL = null; }
+      const placed = sitesList.filter(st => typeof st.lat === "number" && typeof st.lng === "number");
+      const pos = fanGeom(placed);
+      const feats = placed.map((st, i) => new E.Graphic({ geometry: { type: "point", longitude: pos[st.id][1], latitude: pos[st.id][0] },
+        attributes: { oid: i + 1, sid: st.id, sym: (sitesMode === "flags" ? (st.code || "xx").toLowerCase() + "|" + (st.type || "consulate") : st.type || "consulate") } }));
+      let renderer;
+      if (sitesMode === "flags") {
+        const keys = [...new Set(feats.map(f => f.attributes.sym))];
+        const infos = await Promise.all(keys.map(async k => { const [code, type] = k.split("|"); const m = await UI.flagMarker(code, type);
+          return { value: k, symbol: { type: "picture-marker", url: m.url, width: m.width + "px", height: m.height + "px", xoffset: m.xoffset, yoffset: m.yoffset } }; }));
+        renderer = { type: "unique-value", field: "sym", uniqueValueInfos: infos, defaultSymbol: { type: "simple-marker", size: 12, color: "#0A5C3C", outline: { color: "#fff", width: 1.5 } } };
+      } else {
+        renderer = { type: "unique-value", field: "sym", uniqueValueInfos: [{ value: "res", symbol: { type: "simple-marker", size: 12, color: "#A8821F", outline: { color: "#fff", width: 1.5 } } }],
+          defaultSymbol: { type: "simple-marker", size: 12, color: "#0A5C3C", outline: { color: "#fff", width: 1.5 } } };
+      }
+      sitesL = new E.FeatureLayer({ source: feats, objectIdField: "oid", geometryType: "point", spatialReference: { wkid: 4326 },
+        fields: [{ name: "oid", type: "oid" }, { name: "sid", type: "string" }, { name: "sym", type: "string" }], outFields: ["*"], renderer, popupEnabled: false, title: "القنصليات" });
+      map.add(sitesL, 0);
+      const cnt = {}; placed.forEach(st => { const k = st.lat.toFixed(6) + "," + st.lng.toFixed(6); cnt[k] = (cnt[k] || 0) + 1; });
+      fanFeats = feats.filter((f, i) => cnt[placed[i].lat.toFixed(6) + "," + placed[i].lng.toFixed(6)] > 1);
+      fanKey = Math.round(view.zoom * 4) + "";
+      syncCluster();
+    }
+    view.watch("stationary", st => {
+      if (!st || !sitesL) return; syncCluster();
+      const k = Math.round(view.zoom * 4) + "";
+      if (k === fanKey || !fanFeats.length) return;
+      fanKey = k;
+      const pos = fanGeom(sitesList.filter(x => typeof x.lat === "number" && typeof x.lng === "number"));
+      const upd = fanFeats.map(f => new E.Graphic({ geometry: { type: "point", longitude: pos[f.attributes.sid][1], latitude: pos[f.attributes.sid][0] }, attributes: Object.assign({}, f.attributes) }));
+      sitesL.applyEdits({ updateFeatures: upd }).catch(() => buildSites());
+    });
     let mk = null, pick = null, dragging = false;
     const api = {
       view, map,
@@ -483,16 +576,29 @@ window.UI = {
       onPick(cb) { pick = cb; return api; },
       point(lat, lng, o = {}) {
         const g = new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat }, symbol: sym(o), attributes: { _i: 1 } }); g._o = o; pts.add(g);
-        if (o.pulse) { const el = document.createElement("div"); el.className = "map-pulse"; el.innerHTML = "<i></i><i></i>"; host.appendChild(el); pulses.push({ el, pt: g.geometry }); placePulses(); }
+        if (o.pulse) { const el = document.createElement("div"); el.className = "map-pulse"; el.innerHTML = "<i></i><i></i>"; host.appendChild(el); pulses.push({ el, pt: g.geometry, dx: o.dx || 0, dy: o.dy || 0 }); placePulses(); }
         return g;
       },
       clear() { pts.removeAll(); tip.hidden = true; pulses.splice(0).forEach(p => p.el.remove()); },
+      async sites(list, o = {}) { sitesList = list || []; sitesOpt = o; if (o.mode) sitesMode = o.mode; await buildSites(); },
+      async sitesMode(m) { sitesMode = m; await buildSites(); },
+      showTip(html, lat, lng) { const p = view.toScreen(new E.Graphic({ geometry: { type: "point", longitude: lng, latitude: lat } }).geometry); tip.innerHTML = html; tip.hidden = false;
+        if (p) { tip.style.left = p.x + "px"; tip.style.top = p.y + "px"; } return tip; },
+      hideTip() { tip.hidden = true; },
       goTo(lat, lng, z) { view.goTo({ center: [lng, lat], zoom: z || view.zoom }, { duration: 600 }).catch(() => {}); },
       destroy() { try { view.destroy(); } catch (e) {} }
     };
     view.on("click", async e => {
-      const h = await view.hitTest(e, { include: [pts] });
+      const h = await view.hitTest(e, { include: sitesL ? [pts, sitesL] : [pts] });
       const g = h.results.find(r => r.graphic && r.graphic._o);
+      const sg = !g && h.results.find(r => r.graphic && r.graphic.layer === sitesL);
+      if (sg) {
+        const gr = sg.graphic;
+        if (gr.isAggregate || (gr.attributes && gr.attributes.cluster_count)) { view.goTo({ target: gr.geometry, zoom: Math.max(view.zoom + 2, 13.2) }, { duration: 500 }).catch(() => {}); return; }
+        const st = sitesList.find(x => x.id === gr.attributes.sid);
+        if (st && sitesOpt.onClick) sitesOpt.onClick(st, gr.geometry);
+        return;
+      }
       if (g) {
         const o = g.graphic._o;
         if (o.onClick) { o.onClick(); return; }

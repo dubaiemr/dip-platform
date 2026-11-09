@@ -336,9 +336,12 @@ html[data-theme="dark"] { background: #03130c; }
 .menu .ic { width: 18px; height: 18px; }
 /* الشريط العلوي لا يتجاوز عرض الشاشة */
 .appbar .in { min-width: 0; }
-.appbar nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.appbar nav { flex: none; scrollbar-width: none; }
 .appbar nav::-webkit-scrollbar { display: none; }
-.appbar .who { flex: none; }
+.appbar .title { min-width: 0; flex: 0 1 auto; overflow: hidden; }
+.appbar .who { flex: 0 4 auto; min-width: 0; }
+.appbar .who > span, .appbar .who .menu-wrap > .act span { min-width: 0; max-width: 240px; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 900px) { .appbar nav { flex: 1 1 100%; min-width: 0; overflow-x: auto; } }
 @media (max-width: 1240px) { .appbar .who .menu-wrap > .act span { display: none; } }
 @media (max-width: 1100px) and (min-width: 901px) { .appbar nav button { padding: 8px 9px; font-size: 13.5px; } .appbar .title { font-size: 15px; } }
 
