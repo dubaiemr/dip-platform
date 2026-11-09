@@ -131,6 +131,13 @@
   /* ---------- كشف القنصليات (assets/js/sites.js) ---------- */
   const SITES0 = (window.DIP_SITES || []).map(x => Object.assign({}, x));
   const SITE = Object.fromEntries(SITES0.map(x => [x.id, x]));
+  // تصحيحات تُطبَّق مرة واحدة على الكشف المحفوظ مسبقاً
+  const SITES_VER = 2;
+  const SITE_PATCHES = { 2: [{ id: "c-cn", lat: 25.255487, lng: 55.309726, note: "إحداثيات من خرائط جوجل (مجمع القناصل — أم هرير)" }] };
+  function patchSites(list, from) {
+    for (let v = (from || 1) + 1; v <= SITES_VER; v++) (SITE_PATCHES[v] || []).forEach(pt => { const x = list.find(y => y.id === pt.id); if (x) Object.assign(x, pt); });
+    return list;
+  }
 
   /* ---------- القنصليات المتاحة لتسجيل الدخول في التشغيل التجريبي ----------
      الأسماء والمواقع من الكشف · أسماء القناصل افتراضية · منزل القنصل داخل مبنى القنصلية */
@@ -273,12 +280,17 @@
     async signIn(id) { return { id }; },
     async signOut() {},
     // كشف المواقع
-    _sitesRead() { try { const v = JSON.parse(localStorage.getItem(SITES_KEY) || "null"); if (Array.isArray(v)) return v; } catch (e) {} return SITES0.map(x => Object.assign({}, x)); },
+    _sitesRead() {
+      try { const v = JSON.parse(localStorage.getItem(SITES_KEY) || "null");
+        if (Array.isArray(v)) { const ver = +localStorage.getItem(SITES_KEY + "-ver") || 1;
+          if (ver < SITES_VER) { patchSites(v, ver); localStorage.setItem(SITES_KEY, JSON.stringify(v)); localStorage.setItem(SITES_KEY + "-ver", SITES_VER); }
+          return v; } } catch (e) {}
+      return SITES0.map(x => Object.assign({}, x)); },
     _siteSubs: [],
     subscribeSites(fn) { this._siteSubs.push(fn); fn(this._sitesRead());
       if (!this._sitesBound) { this._sitesBound = true; window.addEventListener("storage", e => { if (e.key === SITES_KEY) { const l = this._sitesRead(); this._siteSubs.forEach(f => f(l)); } }); }
       return () => { this._siteSubs = this._siteSubs.filter(f => f !== fn); }; },
-    async saveSites(list) { try { localStorage.setItem(SITES_KEY, JSON.stringify(list)); } catch (e) {} this._siteSubs.forEach(f => f(list)); }
+    async saveSites(list) { try { localStorage.setItem(SITES_KEY, JSON.stringify(list)); localStorage.setItem(SITES_KEY + "-ver", SITES_VER); } catch (e) {} this._siteSubs.forEach(f => f(list)); }
   };
 
   /* ============================================================
@@ -325,11 +337,13 @@
     _sitesDoc() { return this.db.collection("requests").doc("_sites"); },
     subscribeSites(fn) {
       return this._sitesDoc().onSnapshot(d => {
-        if (!d.exists) { this._sitesDoc().set({ list: SITES0, updatedAt: Date.now() }); fn(SITES0.map(x => Object.assign({}, x))); return; }
-        fn((d.data().list || []).map(x => Object.assign({}, x)));
+        if (!d.exists) { this._sitesDoc().set({ list: SITES0, ver: SITES_VER, updatedAt: Date.now() }); fn(SITES0.map(x => Object.assign({}, x))); return; }
+        const data = d.data(), list = (data.list || []).map(x => Object.assign({}, x));
+        if ((data.ver || 1) < SITES_VER) { patchSites(list, data.ver || 1); this._sitesDoc().set({ list, ver: SITES_VER, updatedAt: Date.now() }).catch(() => {}); }
+        fn(list);
       }, err => { console.error(err); window.UI && UI.toast("تعذر تحميل كشف المواقع: " + err.message, "err"); });
     },
-    async saveSites(list) { await this._sitesDoc().set({ list: JSON.parse(JSON.stringify(list)), updatedAt: Date.now() }); }
+    async saveSites(list) { await this._sitesDoc().set({ list: JSON.parse(JSON.stringify(list)), ver: SITES_VER, updatedAt: Date.now() }); }
   };
 
   const cfg = (window.APP_CONFIG && window.APP_CONFIG.firebase) || {};
@@ -596,8 +610,7 @@ window.UI = {
         const gr = sg.graphic;
         if (gr.isAggregate || (gr.attributes && gr.attributes.cluster_count)) { view.goTo({ target: gr.geometry, zoom: Math.max(view.zoom + 2, 13.2) }, { duration: 500 }).catch(() => {}); return; }
         const st = sitesList.find(x => x.id === gr.attributes.sid);
-        if (st && sitesOpt.onClick) sitesOpt.onClick(st, gr.geometry);
-        return;
+        if (st && sitesOpt.onClick) { sitesOpt.onClick(st, gr.geometry); return; }
       }
       if (g) {
         const o = g.graphic._o;

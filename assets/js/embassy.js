@@ -20,7 +20,7 @@
       hrs: "ساعة", min: "دقيقة", within: "مدة الإنجاز", permit: "يصدر تصريح رقمي", req: "قدّم الطلب",
       myReqs: "طلباتي", noReqs: "لا توجد طلبات في هذا التصنيف.", open: "جارية", done: "مكتملة", rejected: "الاعتذارات",
       newReq: "طلب جديد", autoData: "بيانات البعثة (تعبئة تلقائية)", officer: "ضابط الاتصال", phone: "الهاتف", type: "النوع",
-      attach: "المرفقات", attachHint: "يُحفظ اسم الملف فقط في التشغيل التجريبي.", submit: "إرسال الطلب", cancel: "إلغاء",
+      attach: "المرفقات", attachHint: "تُرسل الصور (حتى 3 صور) وتظهر لشرطة دبي مع الطلب، أما بقية الملفات فيُحفظ اسمها فقط في التشغيل التجريبي.", submit: "إرسال الطلب", cancel: "إلغاء",
       mapHint: "اضغط على الخارطة لتحديد الموقع.", required: "يرجى تعبئة الحقول المطلوبة.", sent: "تم إرسال الطلب بنجاح — رقم الطلب: ",
       details: "تفاصيل الطلب", ref: "رقم الطلب", service: "الخدمة", submitted: "تاريخ التقديم", unit: "الجهة المختصة",
       status: "الحالة", history: "سجل الطلب", rejectReason: "سبب الاعتذار",
@@ -48,7 +48,7 @@
       hrs: "hrs", min: "min", within: "Service time", permit: "Digital permit", req: "Request",
       myReqs: "My requests", noReqs: "No requests here.", open: "Open", done: "Completed", rejected: "Declined",
       newReq: "New request", autoData: "Mission details (auto-filled)", officer: "Liaison officer", phone: "Phone", type: "Type",
-      attach: "Attachments", attachHint: "Pilot mode stores the file name only.", submit: "Submit request", cancel: "Cancel",
+      attach: "Attachments", attachHint: "Photos (up to 3) are sent with the request and shown to Dubai Police; other files are stored by name only in pilot mode.", submit: "Submit request", cancel: "Cancel",
       mapHint: "Click on the map to set the location.", required: "Please complete the required fields.", sent: "Request submitted — reference: ",
       details: "Request details", ref: "Reference", service: "Service", submitted: "Submitted", unit: "Handled by",
       status: "Status", history: "History", rejectReason: "Reason for declining",
@@ -351,7 +351,7 @@
           <div class="auto"><div class="t">${UI.ic("check")} ${t("autoData")}</div>
             <div><span>${t("mission")}</span>${esc(nm(m))}</div><div><span>${t("consul")}</span>${esc(m.consul)}</div><div><span>${t("officer")}</span>${esc(m.officer)}</div><div><span>${t("phone")}</span><span class="num" dir="ltr" style="color:inherit;font-size:13px">${esc(m.phone)}</span></div></div>
           <div class="grid2">${s.fields.map(f => fieldHtml(f, pre)).join("")}
-            <div class="field full"><label>${t("attach")}</label><input type="file" id="fFiles" multiple><div class="map-note">${t("attachHint")}</div></div>
+            <div class="field full"><label>${t("attach")}</label><input type="file" id="fFiles" multiple><div class="map-note">${t("attachHint")}</div><div class="thumbs" id="fThumbs"></div></div>
           </div>
         </div>
         <div class="modal-f"><button type="button" class="btn btn-o" data-close>${t("cancel")}</button><button class="btn btn-p">${UI.ic("send")} ${t("submit")}</button></div>
@@ -367,6 +367,10 @@
           loc = { lat: +lat.toFixed(5), lng: +lng.toFixed(5), label: "" };
           $("#mapNote").innerHTML = `${UI.ic("check")} <span class="num" dir="ltr">${loc.lat}, ${loc.lng}</span>`;
         });
+        // الموقع الافتراضي: مقر القنصلية، ويمكن تغييره بالضغط على الخارطة
+        loc = { lat: m.lat, lng: m.lng, label: "مقر القنصلية" };
+        mp.marker(m.lat, m.lng, { draggable: true });
+        $("#mapNote").innerHTML = `${UI.ic("check")} ${esc(t("consAddr"))} — ${t("mapHint")}`;
       }).catch(() => {
         const el = $("#fMap"); if (!el) return;
         el.outerHTML = `<input name="locText" class="inp" required placeholder="${t("address")}">`;
@@ -374,6 +378,13 @@
       });
     }
 
+    // الصور المرفقة تُضغط وتُرسل مع الطلب (حتى 3 صور)، وبقية الملفات يُحفظ اسمها
+    let photos = [];
+    $("#fFiles").onchange = async ev => {
+      photos = [];
+      for (const f of [...ev.target.files]) { if (!/^image\//.test(f.type) || photos.length >= 3) continue; try { photos.push(await UI.compressImage(f, 1000, 0.6)); } catch (err) {} }
+      $("#fThumbs").innerHTML = photos.map(x => `<img class="thumb" src="${x}" alt="">`).join("");
+    };
     $("#reqForm").onsubmit = async e => {
       e.preventDefault();
       const fd = new FormData(e.target), fields = {};
@@ -383,7 +394,7 @@
       const now = Date.now();
       const r = {
         ref: makeRef(), missionId, missionName: m.ar, serviceId: sid, category: s.cat, unit: "coord", suggestedUnit: DIP.unitFor(s), source: "mofa",
-        fields, location: loc, attachments: [...$("#fFiles").files].map(f => f.name), photos: [],
+        fields, location: loc, attachments: [...$("#fFiles").files].filter(f => !/^image\//.test(f.type)).map(f => f.name), photos,
         status: "new", urgent: false, slaHours: s.sla, createdAt: now, updatedAt: now,
         history: [{ status: "new", at: now, by: m.ar, note: "وارد من منصة وزارة الخارجية" }], notes: []
       };

@@ -332,7 +332,7 @@
           <div style="display:flex;gap:8px;align-items:center">${slaTag(r)} ${UI.statusBadge(r.status)}</div></div>
         ${hasMap || photo ? `<div class="media2" ${!photo && !r.urgent ? 'style="grid-template-columns:1fr"' : ""}>
           ${hasMap ? `<div class="mini-map" id="miniMap"></div>` : ""}
-          ${photo || r.urgent ? `<div class="photo">${photo ? `<img src="${photo}" alt="صورة البلاغ" id="sosPhoto">` : `<div class="none">${UI.ic("camera")}لم تُرفق صورة مع البلاغ</div>`}</div>` : ""}
+          ${photo || r.urgent ? `<div class="photo">${photo ? `<img src="${photo}" alt="${r.urgent ? "صورة البلاغ" : "صورة مرفقة بالطلب"}" id="sosPhoto">${r.photos.length > 1 ? `<div class="more gallery">${r.photos.slice(1).map(x => `<img src="${x}" alt="">`).join("")}</div>` : ""}` : `<div class="none">${UI.ic("camera")}لم تُرفق صورة مع البلاغ</div>`}</div>` : ""}
         </div>` : ""}
         ${r.unit === "coord" ? `<div class="box route-box"><h4>${UI.ic("route")} توزيع الطلب — المنسق الرئيسي</h4>
           <p class="muted" style="margin:0 0 10px;font-size:13px">ورد هذا الطلب من منصة وزارة الخارجية. اختر الجهة المختصة لتوجيهه إليها.</p>
