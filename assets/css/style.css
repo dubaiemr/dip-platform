@@ -363,3 +363,6 @@ html, body { overflow-x: clip; }
 .appbar .lang-sel { flex: none; }
 @media (max-width: 1400px) and (min-width: 901px) { .appbar .who .menu-wrap > .act span { display: none; } .appbar .act.notif span { display: none; } }
 @media (max-width: 1150px) and (min-width: 901px) { .appbar .in { gap: 10px; } }
+/* شعار الإدارة المعتمد بالاسم */
+.brand-right .acisn { height: 50px; width: auto; }
+@media (max-width: 700px) { .brand-right .acisn { height: 29px; } }

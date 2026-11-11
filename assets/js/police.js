@@ -494,7 +494,7 @@
 body.cap{width:794px;max-width:none;margin:0;padding:26px 30px}body.cap .rt{display:none}body.cap .ft{position:static}
 .rt-wait{position:fixed;inset:0;z-index:99;background:#fff;display:none;place-items:center;font-size:16px;color:#00492c}body.cap .rt-wait{display:grid}
 @media print{.rt,.rt-wait{display:none!important}}@media (max-width:700px){body:not(.cap){padding:14px;font-size:13px}body:not(.cap) .rt{margin:-14px -14px 14px}.rt-t{display:none}.rt button{flex:1;padding:9px 6px}
-body:not(.cap) .hd img{height:34px!important}body:not(.cap) .hd .sep{height:30px}body:not(.cap) .hd .d b{font-size:11px}body:not(.cap) .hd .d small{display:none}
+body:not(.cap) .hd img{height:26px!important}body:not(.cap) .hd img.acn{height:24px!important}body:not(.cap) .hd .r{gap:6px}body:not(.cap) .hd .sep{height:24px}body:not(.cap) .hd .sep{height:30px}body:not(.cap) .hd .d b{font-size:11px}body:not(.cap) .hd .d small{display:none}
 body:not(.cap) h1{font-size:16px}body:not(.cap) .meta,body:not(.cap) .kp{grid-template-columns:1fr 1fr}body:not(.cap) .two{grid-template-columns:1fr}
 body:not(.cap) th{width:38%}body:not(.cap) .ph{grid-template-columns:1fr}body:not(.cap) .ph img{height:auto;max-height:260px}
 body:not(.cap) .bar{grid-template-columns:70px 1fr 80px;font-size:10.5px}body:not(.cap) .ft{flex-direction:column;gap:4px;font-size:9.5px}}</style>`;
@@ -534,7 +534,7 @@ if(document.readyState==="complete")start();else{window.addEventListener("load",
     w.document.write('<p style="font-family:sans-serif;text-align:center;margin-top:40px">جارٍ إعداد التقرير…</p>');
     const rep = r.report, s = svc(r.serviceId), m = MISSIONS[r.missionId] || {};
     const dir = location.href.replace(/[^/]*$/, "") + "assets/img/";
-    const [lDp, lAcis, lGov] = await Promise.all(["logo-dubai-police.png", "logo-acis.png", "logo-gov-dubai.png"].map(n => toData(dir + n)));
+    const [lDp, lAcis, lGov] = await Promise.all(["logo-dubai-police.png", "logo-acis-name.png", "logo-gov-dubai.png"].map(n => toData(dir + n)));
     const row = (k, v) => v ? `<tr><th>${k}</th><td>${esc(v)}</td></tr>` : "";
     const fields = s.fields.filter(f => f.type !== "map").map(f => row(f.ar.replace(/\s*\(.*\)$/, ""), r.fields[f.k])).join("")
       + (r.urgent ? row("نوع البلاغ", r.fields.type) + row("مكان البلاغ", r.location && r.location.label) + row("وصف البلاغ", r.fields.desc) : "");
@@ -544,7 +544,7 @@ if(document.readyState==="complete")start();else{window.addEventListener("load",
 @font-face{font-family:B;font-weight:400;src:local("29LT Bukra Regular"),local("29LT Bukra")}@font-face{font-family:B;font-weight:700;src:local("29LT Bukra Bold")}
 @page{size:A4;margin:14mm 12mm 18mm}*{box-sizing:border-box}body{font-family:B,"Dubai","Segoe UI",Tahoma,sans-serif;color:#1d2a24;margin:0;padding-bottom:34px;font-size:12.5px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ph img,.txt,table{break-inside:avoid}
 .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00492c;padding-bottom:10px}
-.hd .r{display:flex;align-items:center;gap:12px}.hd img{height:48px}.hd .sep{width:1.5px;height:42px;background:#018556}
+.hd .r{display:flex;align-items:center;gap:12px}.hd img{height:48px}.hd img.acn{height:46px}.hd .sep{width:1.5px;height:42px;background:#018556}
 .hd .d b{display:block;font-size:14px}.hd .d small{font-size:8.5px;color:#5d6b64;font-weight:700}
 h1{font-size:19px;text-align:center;color:#00492c;margin:16px 0 2px}.sub{text-align:center;color:#5d6b64;margin-bottom:14px}
 .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}.meta div{border:1px solid #d6e3db;border-radius:8px;padding:6px 9px}.meta span{display:block;font-size:10.5px;color:#5d6b64}.meta b{font-size:12.5px}
@@ -557,7 +557,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d6e3db;padding
 .ft b{color:#00492c}
 @media screen{.ft{position:static;margin-top:22px}body{max-width:900px;margin:0 auto;padding:20px}}
 </style></head><body>${RT.bar}
-<div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img src="${lAcis}" style="height:52px"><div class="d"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div></div><img src="${lGov}"></div>
+<div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img class="acn" src="${lAcis}" alt="إدارة أمن الهيئات والمنشآت الحيوية"></div><img src="${lGov}"></div>
 <h1>تقرير تنفيذ مهمة — ${esc(s.ar)}</h1><div class="sub">${esc(r.missionName)}</div>
 <div class="meta"><div><span>رقم الطلب</span><b dir="ltr">${esc(r.ref)}</b></div><div><span>تاريخ التنفيذ</span><b>${esc(rep.date || "—")}</b></div><div><span>الوقت</span><b>${esc(rep.tfrom || "")} — ${esc(rep.tto || "")}</b></div><div><span>الجهة المختصة</span><b>${esc((UNITS[r.unit] || {}).ar || "")}</b></div></div>
 <h2>بيانات الطلب</h2><table>${row("البعثة", r.missionName)}${row("القنصل العام", m.consul)}${row("ضابط الاتصال", (m.officer || "") + " — " + (m.phone || ""))}${row("مصدر الطلب", (SOURCES[r.source] || SOURCES.mofa).ar)}${row("تاريخ التقديم", fmtDate(r.createdAt))}${fields}</table>
@@ -999,7 +999,7 @@ ${RT.js}</body></html>`;
     const L = all.filter(r => r.createdAt >= t0 && r.createdAt < t1);
     const B = bcs.filter(b => b.createdAt >= t0 && b.createdAt < t1);
     const dir = location.href.replace(/[^/]*$/, "") + "assets/img/";
-    const [lDp, lAcis, lGov] = await Promise.all(["logo-dubai-police.png", "logo-acis.png", "logo-gov-dubai.png"].map(n => toData(dir + n)));
+    const [lDp, lAcis, lGov] = await Promise.all(["logo-dubai-police.png", "logo-acis-name.png", "logo-gov-dubai.png"].map(n => toData(dir + n)));
     const dmy = iso => iso.split("-").reverse().join("/");
     const done = L.filter(r => r.status === "completed"), open = L.filter(r => !["completed", "rejected"].includes(r.status));
     const inSla = done.filter(r => r.completedAt - r.createdAt <= r.slaHours * HOUR);
@@ -1031,7 +1031,7 @@ ${RT.js}</body></html>`;
 @font-face{font-family:B;font-weight:400;src:local("29LT Bukra Regular"),local("29LT Bukra")}@font-face{font-family:B;font-weight:700;src:local("29LT Bukra Bold")}
 @page{size:A4;margin:14mm 12mm 18mm}*{box-sizing:border-box}body{font-family:B,"Dubai","Segoe UI",Tahoma,sans-serif;color:#1d2a24;margin:0;padding-bottom:34px;font-size:12px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .hd{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #00492c;padding-bottom:10px}
-.hd .r{display:flex;align-items:center;gap:12px}.hd img{height:48px}.hd .sep{width:1.5px;height:42px;background:#018556}
+.hd .r{display:flex;align-items:center;gap:12px}.hd img{height:48px}.hd img.acn{height:46px}.hd .sep{width:1.5px;height:42px;background:#018556}
 .hd .d b{display:block;font-size:14px}.hd .d small{font-size:8.5px;color:#5d6b64;font-weight:700}
 h1{font-size:19px;text-align:center;color:#00492c;margin:16px 0 2px}.sub{text-align:center;color:#5d6b64;margin-bottom:14px}
 h2{font-size:13.5px;color:#fff;background:#00492c;padding:5px 12px;border-radius:6px;margin:16px 0 8px;break-after:avoid}
@@ -1044,7 +1044,7 @@ table{width:100%;border-collapse:collapse;break-inside:avoid}th,td{border:1px so
 .ft{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #00492c;padding-top:5px;display:flex;justify-content:space-between;font-size:10px;color:#5d6b64}.ft b{color:#00492c}
 @media screen{.ft{position:static;margin-top:22px}body{max-width:900px;margin:0 auto;padding:20px}}
 </style></head><body>${RT.bar}
-<div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img src="${lAcis}" style="height:52px"><div class="d"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div></div><img src="${lGov}"></div>
+<div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img class="acn" src="${lAcis}" alt="إدارة أمن الهيئات والمنشآت الحيوية"></div><img src="${lGov}"></div>
 <h1>تقرير إحصائي — المنصة الإلكترونية لخدمات الهيئات الدبلوماسية</h1><div class="sub">للفترة من ${dmy(fromIso)} إلى ${dmy(toIso)}</div>
 <h2>المؤشرات الرئيسية</h2><div class="kp">
 ${kpi("إجمالي الطلبات", L.length, `${open.length} مفتوح · ${done.length} مكتمل`)}${kpi("الالتزام بمهلة الإنجاز", slaPct + "%", "المستهدف 95%")}${kpi("متوسط زمن الإنجاز", avgH + " ساعة", `من ${done.length} طلب مكتمل`)}${kpi("رضا المتعاملين", satPct + "%", `${rated.length} تقييم`)}
