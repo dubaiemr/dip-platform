@@ -231,3 +231,19 @@
 :root[data-theme="dark"] .sv-g b { color: var(--gold-l, #e9cf8e); }
 .dash-h { flex-wrap: wrap; gap: 10px; }
 @media (max-width: 900px) { .chk-nums, .sv-g { grid-template-columns: 1fr 1fr; } .tg-list { grid-template-columns: 1fr; } }
+/* قائمة الجهات المشاركة (اختيار متعدد) */
+.ms { position: relative; }
+.ms-btn { width: 100%; display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--card); color: var(--ink); border: 1.5px solid var(--line); border-radius: 10px; padding: 10px 12px; cursor: pointer; font: inherit; text-align: start; }
+.ms-btn:hover, .ms-btn:focus { border-color: var(--gold); outline: none; }
+.ms-btn .ic { width: 18px; height: 18px; flex: none; }
+.ms-pan { position: absolute; top: calc(100% + 6px); inset-inline: 0; z-index: 20; max-height: 320px; overflow: auto; background: var(--card); border: 1.5px solid var(--gold); border-radius: 12px; box-shadow: 0 14px 36px rgba(0,0,0,.2); padding: 6px; }
+.ms-g { position: sticky; top: -6px; background: var(--card); font-size: 12px; font-weight: 700; color: var(--g700, #018556); padding: 8px 8px 4px; border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+.ms-o { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 8px; cursor: pointer; font-size: 13.5px; }
+.ms-o:hover { background: var(--g50); }
+.ms-o input { width: 17px; height: 17px; accent-color: var(--g700, #018556); flex: none; margin: 0; }
+.ms-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.ms-chips:empty { display: none; }
+.ms-chips .chip { display: inline-flex; align-items: center; gap: 4px; background: var(--g50); border: 1px solid var(--line); color: var(--ink); border-radius: 99px; padding: 3px 10px; font-size: 12.5px; }
+.ms-chips .chip button { background: none; border: 0; padding: 0; cursor: pointer; color: var(--muted); display: grid; }
+.ms-chips .chip .ic { width: 13px; height: 13px; }
+#prtOther[hidden] { display: none !important; }

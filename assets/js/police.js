@@ -319,6 +319,7 @@
           <div class="rep-grid"><div><span class="k">تاريخ التنفيذ</span><b>${esc(rep.date || "—")}</b></div><div><span class="k">الوقت</span><b class="num">${esc(rep.tfrom || "")} — ${esc(rep.tto || "")}</b></div>
             <div><span class="k">عدد الأفراد</span><b class="num">${esc(rep.members || "—")}</b></div><div><span class="k">عدد الدوريات</span><b class="num">${esc(rep.patrols || "—")}</b></div></div>
           <span class="k">قائد المهمة</span><p>${esc(rep.leader || "—")}</p>
+          ${partiesText(rep).length ? `<span class="k">الجهات المشاركة</span><div class="ms-chips" style="margin:4px 0 10px">${partiesText(rep).map(x => `<span class="chip">${esc(x)}</span>`).join("")}</div>` : ""}
           <span class="k">ملخص التنفيذ</span><p>${esc(rep.summary || "—")}</p>
           ${rep.remarks ? `<span class="k">الملاحظات</span><p>${esc(rep.remarks)}</p>` : ""}
           ${rep.recs ? `<span class="k">التوصيات</span><p>${esc(rep.recs)}</p>` : ""}
@@ -414,6 +415,12 @@
   }
 
   /* ---------- تقرير التنفيذ ---------- */
+  // الجهات المشاركة في التنفيذ
+  const PARTIES = [
+    ["إدارات القيادة العامة لشرطة دبي", ["الإدارة العامة للعمليات", "الإدارة العامة للمرور", "الإدارة العامة للتحريات والمباحث الجنائية", "الإدارة العامة لأمن الهيئات والمنشآت والطوارئ (أقسام أخرى)", "الإدارة العامة للأدلة الجنائية وعلم الجريمة", "الإدارة العامة للنقل والإنقاذ", "الإدارة العامة لأمن المطارات", "الإدارة العامة لأمن الموانئ", "الإدارة العامة لحقوق الإنسان", "الإدارة العامة لإسعاد المجتمع", "الإدارة العامة للخدمات والتجهيزات", "مركز الشرطة المختص"]],
+    ["الجهات الخارجية", ["وزارة الخارجية — مكتب دبي", "الإدارة العامة للدفاع المدني بدبي", "مؤسسة دبي لخدمات الإسعاف", "هيئة الطرق والمواصلات", "بلدية دبي", "هيئة كهرباء ومياه دبي", "الإدارة العامة للإقامة وشؤون الأجانب بدبي", "جمارك دبي", "دائرة التشريفات والضيافة", "دائرة الاقتصاد والسياحة بدبي", "مؤسسة تنظيم الصناعة الأمنية", "الجهة المنظمة للفعالية / شركة الأمن الخاصة"]]
+  ];
+  const partiesText = rep => (rep.parties || []).concat(rep.partiesOther ? [rep.partiesOther] : []);
   function reportForm(r) {
     repOpen = true;
     const p = r.report || {}, photos = (p.photos || []).slice();
@@ -428,6 +435,12 @@
           <div class="field"><label>وقت الانتهاء</label><input type="time" name="tto" value="${esc(p.tto || "")}"></div>
           <div class="field"><label>عدد الأفراد المشاركين</label><input type="number" min="0" name="members" value="${esc(p.members || "")}"></div>
           <div class="field"><label>عدد الدوريات</label><input type="number" min="0" name="patrols" value="${esc(p.patrols || "")}"></div>
+          <div class="field full"><label>الجهات المشاركة</label>
+            <div class="ms" id="prtMs"><button type="button" class="ms-btn" id="prtBtn"><span id="prtLbl"></span><svg class="ic" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+              <div class="ms-pan" id="prtPan" hidden>${PARTIES.map(([g, L]) => `<div class="ms-g">${g}</div>` + L.map(x => `<label class="ms-o"><input type="checkbox" value="${esc(x)}" ${(p.parties || []).includes(x) ? "checked" : ""}><span>${esc(x)}</span></label>`).join("")).join("")}
+                <div class="ms-g">أخرى</div><label class="ms-o"><input type="checkbox" id="prtOtherChk" ${p.partiesOther ? "checked" : ""}><span>جهة أخرى (تُكتب يدوياً)</span></label></div></div>
+            <input name="partiesOther" id="prtOther" placeholder="اكتب اسم الجهة أو الجهات الأخرى" value="${esc(p.partiesOther || "")}" style="margin-top:8px" ${p.partiesOther ? "" : "hidden"}>
+            <div class="ms-chips" id="prtChips"></div></div>
           <div class="field full"><label>ملخص التنفيذ <span class="rq">*</span></label><textarea name="summary" required placeholder="وصف موجز لما نُفِّذ ونتائج المهمة">${esc(p.summary || "")}</textarea></div>
           <div class="field full"><label>الملاحظات</label><textarea name="remarks">${esc(p.remarks || "")}</textarea></div>
           <div class="field full"><label>التوصيات</label><textarea name="recs">${esc(p.recs || "")}</textarea></div>
@@ -438,6 +451,19 @@
       </form>`;
     const redraw = () => { $("#repThumbs").innerHTML = thumbs(); $("#repThumbs").querySelectorAll("[data-rm]").forEach(b => b.onclick = () => { photos.splice(+b.dataset.rm, 1); redraw(); }); };
     redraw();
+    const prtSel = () => [...$("#prtPan").querySelectorAll("input[value]:checked")].map(i => i.value);
+    const prtDraw = () => {
+      const L = prtSel(), oth = $("#prtOtherChk").checked;
+      $("#prtLbl").textContent = L.length || oth ? `تم اختيار ${L.length + (oth ? 1 : 0)} جهة` : "اختر الجهات المشاركة";
+      $("#prtOther").hidden = !oth; if (!oth) $("#prtOther").value = "";
+      $("#prtChips").innerHTML = L.map(x => `<span class="chip">${esc(x)}<button type="button" data-un="${esc(x)}">${UI.ic("x")}</button></span>`).join("");
+      $("#prtChips").querySelectorAll("[data-un]").forEach(b => b.onclick = () => { const i = [...$("#prtPan").querySelectorAll("input[value]")].find(i => i.value === b.dataset.un); if (i) i.checked = false; prtDraw(); });
+    };
+    prtDraw();
+    $("#prtBtn").onclick = e => { e.stopPropagation(); $("#prtPan").hidden = !$("#prtPan").hidden; };
+    $("#prtPan").onclick = e => e.stopPropagation();
+    $("#prtPan").onchange = () => { prtDraw(); if ($("#prtOtherChk").checked && !$("#prtOther").value) $("#prtOther").focus(); };
+    $("#repForm").addEventListener("click", e => { if (!e.target.closest("#prtMs")) $("#prtPan").hidden = true; });
     $("#repForm").scrollIntoView({ behavior: "smooth", block: "start" });
     $("#repPh").onchange = async e => {
       for (const f of [...e.target.files]) { if (photos.length >= 4) break; try { photos.push(await UI.compressImage(f, 900, 0.55)); } catch (err) {} }
@@ -448,6 +474,7 @@
       e.preventDefault();
       const fd = new FormData(e.target), rep = { photos, by: officer, at: Date.now() };
       ["date", "leader", "tfrom", "tto", "members", "patrols", "summary", "remarks", "recs"].forEach(k => rep[k] = (fd.get(k) || "").toString().trim());
+      rep.parties = prtSel(); rep.partiesOther = $("#prtOtherChk").checked ? (fd.get("partiesOther") || "").toString().trim() : "";
       try {
         await Store.update(r.id, { report: rep, updatedAt: Date.now(), notes: (r.notes || []).concat([{ text: "رُفع تقرير التنفيذ", at: Date.now(), by: officer }]) });
         repOpen = false; UI.toast("تم حفظ تقرير التنفيذ");
@@ -490,7 +517,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d6e3db;padding
 <h1>تقرير تنفيذ مهمة — ${esc(s.ar)}</h1><div class="sub">${esc(r.missionName)}</div>
 <div class="meta"><div><span>رقم الطلب</span><b dir="ltr">${esc(r.ref)}</b></div><div><span>تاريخ التنفيذ</span><b>${esc(rep.date || "—")}</b></div><div><span>الوقت</span><b>${esc(rep.tfrom || "")} — ${esc(rep.tto || "")}</b></div><div><span>الجهة المختصة</span><b>${esc((UNITS[r.unit] || {}).ar || "")}</b></div></div>
 <h2>بيانات الطلب</h2><table>${row("البعثة", r.missionName)}${row("القنصل العام", m.consul)}${row("ضابط الاتصال", (m.officer || "") + " — " + (m.phone || ""))}${row("مصدر الطلب", (SOURCES[r.source] || SOURCES.mofa).ar)}${row("تاريخ التقديم", fmtDate(r.createdAt))}${fields}</table>
-<h2>تفاصيل التنفيذ</h2><table>${row("قائد المهمة", rep.leader)}${row("عدد الأفراد المشاركين", rep.members)}${row("عدد الدوريات", rep.patrols)}${row("حالة الطلب", STATUSES[r.status].ar)}</table>
+<h2>تفاصيل التنفيذ</h2><table>${row("قائد المهمة", rep.leader)}${row("عدد الأفراد المشاركين", rep.members)}${row("عدد الدوريات", rep.patrols)}${row("الجهات المشاركة", partiesText(rep).join("، "))}${row("حالة الطلب", STATUSES[r.status].ar)}</table>
 <div class="txt" style="margin-top:8px"><b>ملخص التنفيذ</b>${esc(rep.summary || "—")}</div>
 ${rep.remarks ? `<div class="txt"><b>الملاحظات</b>${esc(rep.remarks)}</div>` : ""}${rep.recs ? `<div class="txt"><b>التوصيات</b>${esc(rep.recs)}</div>` : ""}
 ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph">${rep.photos.map(p => `<img src="${p}">`).join("")}</div>` : ""}
