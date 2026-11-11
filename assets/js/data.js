@@ -57,6 +57,7 @@
                F.time("tfrom", "من الساعة", "From"), F.time("tto", "إلى الساعة", "To"),
                F.num("guests", "العدد المتوقع للحضور", "Expected attendees"),
                F.sel("vip", "حضور شخصيات هامة", "VIP attendance", [["لا","No"],["نعم","Yes"]]),
+               F.sel("venue", "مكان الفعالية", "Event venue", [["داخل مقر القنصلية","Inside the consulate premises"],["منزل القنصل العام","Consul General's residence"],["فندق","Hotel"],["موقع آخر خارج البعثة","Other venue outside the mission"]]),
                F.map(), F.area("notes", "ملاحظات", "Notes")] },
     { id: "s3", cat: "security", sla: 24, permit: true,
       ar: "طلب تصريح دخول منطقة محظورة", en: "Restricted Area Entry Permit",
@@ -169,7 +170,12 @@
 
   /* ---------- أدوات مساعدة ---------- */
   const svc = id => SERVICES.find(s => s.id === id);
-  const unitFor = s => s.unit || CATEGORIES[s.cat].unit;
+  // الفعاليات داخل مقر البعثة أو منزل القنصل يؤمّنها القسم، وخارجها (فندق أو موقع آخر) لجنة تأمين الفعاليات
+  const IN_MISSION = ["داخل مقر القنصلية", "منزل القنصل العام"];
+  const unitFor = (s, f) => {
+    if (s.id === "s2") return f && IN_MISSION.includes(f.venue) ? "dip" : "events";
+    return s.unit || CATEGORIES[s.cat].unit;
+  };
   const HOUR = 3600e3, DAY = 24 * HOUR;
   const pad = n => String(n).padStart(2, "0");
   function fmtDate(ms, withTime = true) {
@@ -212,7 +218,7 @@
       const s = svc(sid), created = now - ageH * HOUR, urgent = sid === "e1";
       const r = {
         id: "seed-" + Math.random().toString(36).slice(2, 10), ref: urgent ? makeRef().replace("DIP", "SOS") : makeRef(), missionId: mission,
-        missionName: SITE[mission].name, serviceId: sid, category: s.cat, unit: extra.unit || unitFor(s), source: urgent ? "direct" : "mofa",
+        missionName: SITE[mission].name, serviceId: sid, category: s.cat, unit: extra.unit || unitFor(s, fields), source: urgent ? "direct" : "mofa",
         fields, location: extra.location || null, attachments: [], photos: [],
         status: "new", urgent, slaHours: s.sla, createdAt: created, updatedAt: created,
         history: [{ status: "new", at: created, by: SITE[mission].name, note: urgent ? "بلاغ طارئ — وصل مباشرة" : "وارد من منصة وزارة الخارجية" }], notes: []
@@ -234,7 +240,7 @@
     };
     const L = m => ({ lat: SITE[m].lat, lng: SITE[m].lng, label: "مقر القنصلية" });
     return [
-      mk("c-gb", "s2", 3, "new", { event: "حفل استقبال رسمي", date: "2026-11-20", tfrom: "19:00", tto: "23:00", guests: "350", vip: "نعم", notes: "حضور القنصل العام وعدد من رؤساء البعثات" }, { location: L("c-gb"), unit: "coord" }),
+      mk("c-gb", "s2", 3, "new", { event: "حفل استقبال رسمي", date: "2026-11-20", tfrom: "19:00", tto: "23:00", guests: "350", vip: "نعم", venue: "فندق", notes: "حضور القنصل العام وعدد من رؤساء البعثات" }, { location: L("c-gb"), unit: "coord" }),
       mk("c-ru", "a2", 1.5, "new", { guest: "وزير الخارجية", flight: "EK 0003", date: "2026-11-09", time: "08:40", count: "4" }, { unit: "coord" }),
       mk("c-sa", "a1", 7, "review", { delegation: "وفد وزارة التجارة", flight: "EK 0000", date: "2026-11-09", time: "14:30", terminal: "المبنى 3", count: "6" }),
       mk("c-de", "s3", 20, "approved", { area: "منطقة الميناء — البوابة 4", date: "2026-11-07", persons: "ماريا لوبيز\nخوان بيريز", plate: "دبلوماسي 1234", purpose: "زيارة سفينة ترفع علم الدولة" }),
@@ -245,7 +251,7 @@
       mk("c-jp", "a3", 130, "completed", { plate: "دبلوماسي 2211", driver: "سائق افتراضي", date: "2026-10-30", purpose: "استقبال وفد رسمي" }, { rating: 5, speed: 0.6 }),
       mk("c-tr", "s1", 200, "completed", { facility: "مقر القنصلية العامة", ftype: "مقر البعثة", from: "2026-10-25", to: "2026-10-28", reason: "زيارة رسمية لوزير الخارجية" },
         { location: L("c-tr"), rating: 4, speed: 0.9, report: { date: "2026-10-28", tfrom: "07:00", tto: "22:00", leader: "النقيب/ ضابط افتراضي", members: "8", patrols: "3", summary: "نُفِّذت خطة التأمين وفق المخطط، وتمت تغطية محيط المنزل على مدار فترة الزيارة دون تسجيل أي ملاحظات أمنية.", remarks: "تعاون ممتاز من ضابط الاتصال في البعثة.", recs: "التنسيق المسبق لمواقف المركبات المرافقة." } }),
-      mk("c-de", "s2", 250, "completed", { event: "حفل استقبال رسمي", date: "2026-10-24", tfrom: "19:00", tto: "22:30", guests: "220", vip: "نعم", notes: "" },
+      mk("c-de", "s2", 250, "completed", { event: "حفل استقبال رسمي", date: "2026-10-24", tfrom: "19:00", tto: "22:30", guests: "220", vip: "نعم", venue: "داخل مقر القنصلية", notes: "" },
         { location: L("c-de"), rating: 5, report: { date: "2026-10-24", tfrom: "17:30", tto: "23:00", leader: "الملازم أول/ ضابط افتراضي", members: "12", patrols: "4", summary: "تم تأمين موقع الفعالية والمداخل وتنظيم حركة الدخول، وانتهت الفعالية بسلام.", remarks: "ارتفاع الحضور عن العدد المتوقع بنسبة بسيطة.", recs: "زيادة عدد البوابات في الفعاليات التي يتجاوز حضورها 200 شخص." } }),
       mk("c-sa", "p3", 90, "rejected", { inmate: "نزيل افتراضي (ب)", kind: "تسليم مستندات", details: "تسليم وثائق سفر" }),
       mk("c-au", "s4", 300, "completed", { vipTitle: "رئيس البرلمان", arrive: "2026-10-22", days: "2", program: "زيارة رسمية ولقاءات" }, { location: L("c-au"), rating: 3, speed: 1.3 }),
@@ -266,8 +272,8 @@
     _write(list) { try { localStorage.setItem(LS_KEY, JSON.stringify(list)); } catch (e) {} this._emit(); },
     _emit() { const l = this._read() || []; this._subs.forEach(fn => fn(l)); },
     async init() {
-      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v6", "1"); } catch (e) {} }
-      else { try { if (!localStorage.getItem("dip-seed-v6")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v6", "1"); } } catch (e) {} }
+      if (!this._read()) { this._write(seedRequests()); try { localStorage.setItem("dip-seed-v7", "1"); } catch (e) {} }
+      else { try { if (!localStorage.getItem("dip-seed-v7")) { this._write(seedRequests()); localStorage.setItem("dip-seed-v7", "1"); } } catch (e) {} }
       window.addEventListener("storage", e => { if (e.key === LS_KEY) this._emit(); });
     },
     subscribe(fn) { this._subs.push(fn); fn(this._read() || []); return () => { this._subs = this._subs.filter(f => f !== fn); }; },

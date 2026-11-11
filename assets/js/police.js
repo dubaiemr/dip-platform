@@ -308,7 +308,7 @@
     }
     const closed = ["completed", "rejected"].includes(r.status);
     const si = slaInfo(r);
-    const sugg = r.suggestedUnit || unitFor(s);
+    const sugg = s.id === "s2" ? unitFor(s, r.fields) : (r.suggestedUnit || unitFor(s));
     const unitOpts = sel => Object.entries(UNITS).filter(([k]) => k !== "coord").map(([k, u]) => `<option value="${k}" ${k === sel ? "selected" : ""}>${u.ar}${k === sugg ? " (مقترح حسب الاختصاص)" : ""}</option>`).join("");
 
     const rep = r.report;
@@ -483,6 +483,49 @@
     };
   }
 
+  // شريط أدوات التقرير: رجوع، مشاركة PDF، طباعة — يظهر على الشاشة فقط
+  function repTools(fileName, title) {
+    const base = location.href.replace(/[^/]*$/, "");
+    const bar = `<div class="rt" id="rtBar"><button id="rtBack">&#8594; رجوع</button><span class="rt-t">${esc(title)}</span><button id="rtShare" class="p" disabled>جارٍ التجهيز…</button><button id="rtPrint">طباعة</button></div><div class="rt-wait">جارٍ تجهيز التقرير…</div>`;
+    const css = `<style>.rt{position:sticky;top:0;z-index:9;display:flex;gap:8px;align-items:center;background:#00492c;color:#fff;padding:10px 12px;margin:-20px -20px 18px;font-family:inherit}
+.rt button{font:inherit;font-size:14px;border:1px solid rgba(255,255,255,.4);background:transparent;color:#fff;border-radius:10px;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.rt button.p{background:#cfa562;border-color:#cfa562;color:#1d2a24;font-weight:700}.rt button:disabled{opacity:.6}
+.rt-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;opacity:.85}
+body.cap{width:794px;max-width:none;margin:0;padding:26px 30px}body.cap .rt{display:none}body.cap .ft{position:static}
+.rt-wait{position:fixed;inset:0;z-index:99;background:#fff;display:none;place-items:center;font-size:16px;color:#00492c}body.cap .rt-wait{display:grid}
+@media print{.rt,.rt-wait{display:none!important}}@media (max-width:700px){body:not(.cap){padding:14px;font-size:13px}body:not(.cap) .rt{margin:-14px -14px 14px}.rt-t{display:none}.rt button{flex:1;padding:9px 6px}
+body:not(.cap) .hd img{height:34px!important}body:not(.cap) .hd .sep{height:30px}body:not(.cap) .hd .d b{font-size:11px}body:not(.cap) .hd .d small{display:none}
+body:not(.cap) h1{font-size:16px}body:not(.cap) .meta,body:not(.cap) .kp{grid-template-columns:1fr 1fr}body:not(.cap) .two{grid-template-columns:1fr}
+body:not(.cap) th{width:38%}body:not(.cap) .ph{grid-template-columns:1fr}body:not(.cap) .ph img{height:auto;max-height:260px}
+body:not(.cap) .bar{grid-template-columns:70px 1fr 80px;font-size:10.5px}body:not(.cap) .ft{flex-direction:column;gap:4px;font-size:9.5px}}</style>`;
+    const js = `<script>
+(function(){var LIBS=${JSON.stringify([base + "assets/vendor/html-to-image.js", base + "assets/vendor/jspdf.umd.min.js"])};
+function lib(u){return new Promise(function(ok,no){var x=document.createElement("script");x.src=u;x.onload=ok;x.onerror=no;document.head.appendChild(x);});}
+var libs=null;function needLibs(){return libs||(libs=Promise.all(LIBS.map(lib)));}var NAME=${JSON.stringify(fileName)},pdf=null,busy=null,$=function(i){return document.getElementById(i)};
+$("rtBack").onclick=function(){try{if(window.opener){window.close();}}catch(e){}setTimeout(function(){if(history.length>1)history.back();else location.href=${JSON.stringify(base + "police.html")};},250);};
+$("rtPrint").onclick=async function(){if(busy)try{await busy}catch(e){}print()};
+function breakAt(Y,atoms,H){var y=Y,moved=true;while(moved){moved=false;for(var i=0;i<atoms.length;i++){var a=atoms[i];if(a[0]<y-1&&a[1]>y+1&&a[1]-a[0]<H*0.8){y=a[0];moved=true;}}}return y;}
+function build(){if(busy)return busy;busy=(async function(){await needLibs();var b=document.body;b.classList.add("cap");await new Promise(function(r){setTimeout(r,80)});
+try{var W=794,H=Math.round(W*297/210),bt=b.getBoundingClientRect().top;
+var atoms=[].slice.call(b.querySelectorAll("tr,.txt,h1,h2,.sub,.meta>div,.kp>div,.bar,.note,img,.sign,.hd,.ft,p,.two>div>table")).map(function(e){var r=e.getBoundingClientRect();return[r.top-bt,r.bottom-bt+(e.tagName==="H2"?70:0)]});
+var opt={pixelRatio:2,backgroundColor:"#ffffff",width:W,cacheBust:false,filter:function(n){return !(n.classList&&(n.classList.contains("rt-wait")||n.classList.contains("rt")))}};
+await htmlToImage.toCanvas(b,opt);var cv=await htmlToImage.toCanvas(b,opt);var k=cv.width/W,total=cv.height/k;
+var doc=new jspdf.jsPDF({unit:"pt",format:"a4"}),pw=doc.internal.pageSize.getWidth(),s=pw/W,y=0,first=true;
+var M=28;while(y<total-4){var room=H-(first?0:M)-M/2,end=y+room>=total?total:breakAt(y+room,atoms,H);if(end<=y+40)end=Math.min(total,y+room);var top=first?0:M;
+var c=document.createElement("canvas");c.width=cv.width;c.height=Math.ceil((end-y)*k);var g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,c.width,c.height);g.drawImage(cv,0,-Math.round(y*k));
+if(!first)doc.addPage();first=false;doc.addImage(c.toDataURL("image/jpeg",0.9),"JPEG",0,top*s,pw,(end-y)*s);y=end;}
+pdf=doc.output("blob");}finally{b.classList.remove("cap");}
+var bt2=$("rtShare");bt2.disabled=false;bt2.textContent=(navigator.canShare&&navigator.canShare({files:[new File([pdf],NAME+".pdf",{type:"application/pdf"})]}))?"مشاركة":"تحميل PDF";return pdf;})().catch(function(e){busy=null;var bt2=$("rtShare");bt2.disabled=false;bt2.textContent="مشاركة";console.log("pdf",e);});return busy;}
+$("rtShare").onclick=async function(){if(!pdf){this.disabled=true;this.textContent="جارٍ التجهيز…";await build();}if(!pdf){print();return;}
+var f=new File([pdf],NAME+".pdf",{type:"application/pdf"});
+if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:NAME});}catch(e){}return;}
+var a=document.createElement("a");a.href=URL.createObjectURL(pdf);a.download=NAME+".pdf";document.body.appendChild(a);a.click();setTimeout(function(){a.remove()},500);};
+var started=false;function start(){if(started)return;started=true;setTimeout(function(){var q=build();if(matchMedia("(pointer:fine)").matches&&!/Mobi|Android|iPhone|iPad/.test(navigator.userAgent))q.then(function(){setTimeout(print,200)});},300);}
+if(document.readyState==="complete")start();else{window.addEventListener("load",start);setTimeout(start,1500);}
+})();<\/script>`;
+    return { bar: css + bar, js };
+  }
+
   // تقرير قابل للتحميل بالهوية المؤسسية (طباعة / حفظ PDF)
   const toData = url => fetch(url).then(x => x.blob()).then(b => new Promise(res => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.readAsDataURL(b); })).catch(() => url);
   async function printReport(r) {
@@ -495,7 +538,8 @@
     const row = (k, v) => v ? `<tr><th>${k}</th><td>${esc(v)}</td></tr>` : "";
     const fields = s.fields.filter(f => f.type !== "map").map(f => row(f.ar.replace(/\s*\(.*\)$/, ""), r.fields[f.k])).join("")
       + (r.urgent ? row("نوع البلاغ", r.fields.type) + row("مكان البلاغ", r.location && r.location.label) + row("وصف البلاغ", r.fields.desc) : "");
-    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير تنفيذ — ${esc(r.ref)}</title>
+    const RT = repTools("تقرير تنفيذ " + r.ref, "تقرير تنفيذ — " + r.ref);
+    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تقرير تنفيذ — ${esc(r.ref)}</title>
 <style>
 @font-face{font-family:B;font-weight:400;src:local("29LT Bukra Regular"),local("29LT Bukra")}@font-face{font-family:B;font-weight:700;src:local("29LT Bukra Bold")}
 @page{size:A4;margin:14mm 12mm 18mm}*{box-sizing:border-box}body{font-family:B,"Dubai","Segoe UI",Tahoma,sans-serif;color:#1d2a24;margin:0;padding-bottom:34px;font-size:12.5px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}.ph img,.txt,table{break-inside:avoid}
@@ -512,7 +556,7 @@ table{width:100%;border-collapse:collapse}th,td{border:1px solid #d6e3db;padding
 .ft{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #00492c;padding-top:5px;display:flex;justify-content:space-between;font-size:10px;color:#5d6b64}
 .ft b{color:#00492c}
 @media screen{.ft{position:static;margin-top:22px}body{max-width:900px;margin:0 auto;padding:20px}}
-</style></head><body>
+</style></head><body>${RT.bar}
 <div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img src="${lAcis}" style="height:52px"><div class="d"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div></div><img src="${lGov}"></div>
 <h1>تقرير تنفيذ مهمة — ${esc(s.ar)}</h1><div class="sub">${esc(r.missionName)}</div>
 <div class="meta"><div><span>رقم الطلب</span><b dir="ltr">${esc(r.ref)}</b></div><div><span>تاريخ التنفيذ</span><b>${esc(rep.date || "—")}</b></div><div><span>الوقت</span><b>${esc(rep.tfrom || "")} — ${esc(rep.tto || "")}</b></div><div><span>الجهة المختصة</span><b>${esc((UNITS[r.unit] || {}).ar || "")}</b></div></div>
@@ -523,7 +567,7 @@ ${rep.remarks ? `<div class="txt"><b>الملاحظات</b>${esc(rep.remarks)}</
 ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph">${rep.photos.map(p => `<img src="${p}">`).join("")}</div>` : ""}
 <div class="sign"><div>أعدّه: ${esc(rep.by)}<br>${fmtDate(rep.at)}</div><div>اعتماد رئيس القسم</div></div>
 <div class="ft"><span>القيادة العامة لشرطة دبي — الإدارة العامة لأمن الهيئات والمنشآت والطوارئ</span><b>حراسة | تأمين | استجابة</b></div>
-<script>window.onload=()=>setTimeout(()=>print(),600)<\/script></body></html>`;
+${RT.js}</body></html>`;
     w.document.open(); w.document.write(html); w.document.close();
   }
 
@@ -981,7 +1025,8 @@ ${rep.photos && rep.photos.length ? `<h2>صور المهمة</h2><div class="ph"
     const respTimes = []; chk.forEach(b => Object.values(b.responses || {}).forEach(r => respTimes.push(r.at - b.createdAt)));
     const avgResp = respTimes.length ? respTimes.reduce((a, b) => a + b, 0) / respTimes.length : 0;
     const kpi = (l, v, s0) => `<div class="k"><span>${l}</span><b>${v}</b>${s0 ? `<small>${s0}</small>` : ""}</div>`;
-    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير إحصائي ${dmy(fromIso)} – ${dmy(toIso)}</title>
+    const RT = repTools("تقرير إحصائي " + dmy(fromIso) + " - " + dmy(toIso), "تقرير إحصائي لفترة");
+    const html = `<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>تقرير إحصائي ${dmy(fromIso)} – ${dmy(toIso)}</title>
 <style>
 @font-face{font-family:B;font-weight:400;src:local("29LT Bukra Regular"),local("29LT Bukra")}@font-face{font-family:B;font-weight:700;src:local("29LT Bukra Bold")}
 @page{size:A4;margin:14mm 12mm 18mm}*{box-sizing:border-box}body{font-family:B,"Dubai","Segoe UI",Tahoma,sans-serif;color:#1d2a24;margin:0;padding-bottom:34px;font-size:12px;line-height:1.7;-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -998,7 +1043,7 @@ table{width:100%;border-collapse:collapse;break-inside:avoid}th,td{border:1px so
 .sign{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:24px}.sign div{border-top:1px dashed #9db3a7;padding-top:6px;text-align:center;color:#5d6b64}
 .ft{position:fixed;bottom:0;left:0;right:0;border-top:2px solid #00492c;padding-top:5px;display:flex;justify-content:space-between;font-size:10px;color:#5d6b64}.ft b{color:#00492c}
 @media screen{.ft{position:static;margin-top:22px}body{max-width:900px;margin:0 auto;padding:20px}}
-</style></head><body>
+</style></head><body>${RT.bar}
 <div class="hd"><div class="r"><img src="${lDp}"><span class="sep"></span><img src="${lAcis}" style="height:52px"><div class="d"><b>إدارة أمن الهيئات والمنشآت الحيوية</b><small>AUTHORITIES &amp; CRITICAL INFRASTRUCTURE SECURITY</small></div></div><img src="${lGov}"></div>
 <h1>تقرير إحصائي — المنصة الإلكترونية لخدمات الهيئات الدبلوماسية</h1><div class="sub">للفترة من ${dmy(fromIso)} إلى ${dmy(toIso)}</div>
 <h2>المؤشرات الرئيسية</h2><div class="kp">
@@ -1015,7 +1060,7 @@ ${top.n > 0 ? `<div class="note"><b>أعلى شهر:</b> ${top.l} بعدد ${top
 <div class="note">القيم التقديرية محسوبة على أساس ${sv.c.hops} مخاطبة وإحالة لكل طلب في المسار السابق، و${sv.c.mins} دقيقة لإعداد وتمرير كل مخاطبة.</div>
 <div class="sign"><div>أعدّه: ${esc(officer)}<br>${fmtDate(Date.now())}</div><div>اعتماد مدير الإدارة</div></div>
 <div class="ft"><span>القيادة العامة لشرطة دبي — الإدارة العامة لأمن الهيئات والمنشآت والطوارئ</span><b>حراسة | تأمين | استجابة</b></div>
-<script>window.onload=()=>setTimeout(()=>print(),700)<\/script></body></html>`;
+${RT.js}</body></html>`;
     w.document.open(); w.document.write(html); w.document.close();
   }
 

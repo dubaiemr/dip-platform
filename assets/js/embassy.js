@@ -21,7 +21,7 @@
       myReqs: "طلباتي", noReqs: "لا توجد طلبات في هذا التصنيف.", open: "جارية", done: "مكتملة", rejected: "الاعتذارات",
       newReq: "طلب جديد", autoData: "بيانات البعثة (تعبئة تلقائية)", officer: "ضابط الاتصال", phone: "الهاتف", type: "النوع",
       attach: "المرفقات", attachHint: "تُرسل الصور (حتى 3 صور) وتظهر لشرطة دبي مع الطلب، أما بقية الملفات فيُحفظ اسمها فقط في التشغيل التجريبي.", submit: "إرسال الطلب", cancel: "إلغاء",
-      mapHint: "اضغط على الخارطة لتحديد الموقع.", required: "يرجى تعبئة الحقول المطلوبة.", sent: "تم إرسال الطلب بنجاح — رقم الطلب: ",
+      mapHint: "اضغط على الخارطة لتحديد الموقع.", venueMap: "الفعالية خارج البعثة: يرجى تحديد موقعها على الخارطة.", required: "يرجى تعبئة الحقول المطلوبة.", sent: "تم إرسال الطلب بنجاح — رقم الطلب: ",
       details: "تفاصيل الطلب", ref: "رقم الطلب", service: "الخدمة", submitted: "تاريخ التقديم", unit: "الجهة المختصة",
       status: "الحالة", history: "سجل الطلب", rejectReason: "سبب الاعتذار",
       permitT: "تصريح رقمي", permitNo: "رمز التصريح", permitHint: "يُبرز للدورية أو البوابة للتحقق منه.", print: "طباعة",
@@ -49,7 +49,7 @@
       myReqs: "My requests", noReqs: "No requests here.", open: "Open", done: "Completed", rejected: "Declined",
       newReq: "New request", autoData: "Mission details (auto-filled)", officer: "Liaison officer", phone: "Phone", type: "Type",
       attach: "Attachments", attachHint: "Photos (up to 3) are sent with the request and shown to Dubai Police; other files are stored by name only in pilot mode.", submit: "Submit request", cancel: "Cancel",
-      mapHint: "Click on the map to set the location.", required: "Please complete the required fields.", sent: "Request submitted — reference: ",
+      mapHint: "Click on the map to set the location.", venueMap: "The event is outside the mission: please mark its location on the map.", required: "Please complete the required fields.", sent: "Request submitted — reference: ",
       details: "Request details", ref: "Reference", service: "Service", submitted: "Submitted", unit: "Handled by",
       status: "Status", history: "History", rejectReason: "Reason for declining",
       permitT: "Digital permit", permitNo: "Permit code", permitHint: "Show it to the patrol or gate for verification.", print: "Print",
@@ -439,6 +439,8 @@
       });
     }
 
+    const vSel = $("#reqForm select[name=venue]");
+    if (vSel) vSel.onchange = () => { if (!["داخل مقر القنصلية", "منزل القنصل العام"].includes(vSel.value) && loc && loc.label === "مقر القنصلية" && $("#mapNote")) $("#mapNote").innerHTML = `${UI.ic("alert")} ${esc(t("venueMap"))}`; };
     // الصور المرفقة تُضغط وتُرسل مع الطلب (حتى 3 صور)، وبقية الملفات يُحفظ اسمها
     let photos = [];
     $("#fFiles").onchange = async ev => {
@@ -452,9 +454,10 @@
       s.fields.forEach(f => { if (f.type !== "map") fields[f.k] = (fd.get(f.k) || "").toString().trim(); });
       if (fd.get("locText")) loc = { lat: null, lng: null, label: fd.get("locText") };
       if (s.fields.some(f => f.type === "map") && !loc) { UI.toast(t("mapHint"), "warn"); return; }
+      if (sid === "s2" && !["داخل مقر القنصلية", "منزل القنصل العام"].includes(fields.venue) && loc && loc.label === "مقر القنصلية") { UI.toast(t("venueMap"), "warn"); return; }
       const now = Date.now();
       const r = {
-        ref: makeRef(), missionId, missionName: m.ar, serviceId: sid, category: s.cat, unit: "coord", suggestedUnit: DIP.unitFor(s), source: "mofa",
+        ref: makeRef(), missionId, missionName: m.ar, serviceId: sid, category: s.cat, unit: "coord", suggestedUnit: DIP.unitFor(s, fields), source: "mofa",
         fields, location: loc, attachments: [...$("#fFiles").files].filter(f => !/^image\//.test(f.type)).map(f => f.name), photos,
         status: "new", urgent: false, slaHours: s.sla, createdAt: now, updatedAt: now,
         history: [{ status: "new", at: now, by: m.ar, note: "وارد من منصة وزارة الخارجية" }], notes: []
