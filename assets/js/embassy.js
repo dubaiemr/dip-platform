@@ -203,8 +203,15 @@
     box.querySelectorAll("[data-rd]").forEach(b => b.onclick = async () => { b.disabled = true; try { await Store.setBroadcastField(b.dataset.rd, ["reads", missionId], Date.now()); } catch (e) { b.disabled = false; } });
   }
   function renderWho() {
-    $("#who").innerHTML = `<button class="act notif" id="notifBtn"></button>${UI.ic("user")}<span>${esc(nm(MISSIONS[missionId]))}</span>
-      <button class="act" id="logoutBtn" title="${t("logout")}">${UI.ic("logout")}</button>`;
+    const mn = esc(nm(MISSIONS[missionId]));
+    $("#who").innerHTML = `<button class="act notif" id="notifBtn"></button>
+      <div class="menu-wrap"><button class="act" id="menuBtn" title="${mn}">${UI.ic("user")}<span>${mn}</span><svg class="ic" viewBox="0 0 24 24" style="width:16px;height:16px"><path d="M6 9l6 6 6-6"/></svg></button>
+        <div class="menu" id="menu" hidden>
+          <div class="mh">${UI.ic("user")} ${mn}</div>
+          <button id="logoutBtn">${UI.ic("logout")} ${t("logout")}</button>
+        </div></div>`;
+    $("#menuBtn").onclick = e => { e.stopPropagation(); $("#menu").hidden = !$("#menu").hidden; };
+    if (!renderWho.bound) { renderWho.bound = true; document.addEventListener("click", e => { if (!e.target.closest(".menu-wrap") && $("#menu")) $("#menu").hidden = true; }); }
     EAlerts.button();
     $("#logoutBtn").onclick = async () => { try { sessionStorage.removeItem("dip-mission"); } catch (e) {} await Store.signOut(); location.reload(); };
   }

@@ -351,3 +351,15 @@ html, body { overflow-x: clip; }
 .thumbs .thumb { width: 64px; height: 64px; border-radius: 10px; object-fit: cover; border: 1.5px solid var(--gold); }
 
 @media (max-width: 1150px) and (min-width: 901px) { .appbar nav button > .ic { display: none; } .appbar nav button { padding: 8px 9px; } .appbar .title { font-size: 14.5px; } }
+/* ترتيب الشريط العلوي: عنوان ثابت، قائمة، ثم أدوات المستخدم دون قص */
+.appbar .title { flex: none; overflow: visible; }
+.appbar nav { margin-inline-start: auto; }
+.appbar .who { flex: none; min-width: auto; gap: 6px; opacity: 1; }
+.appbar .who .menu-wrap > .act { border: 1px solid rgba(255,255,255,.28); border-radius: 99px; padding: 5px 12px; }
+.appbar .who .menu-wrap > .act span { max-width: 200px; }
+.menu { max-width: 320px; }
+.menu .mh { white-space: normal; line-height: 1.5; align-items: flex-start; }
+.menu .mh .ic { flex: none; margin-top: 2px; }
+.appbar .lang-sel { flex: none; }
+@media (max-width: 1400px) and (min-width: 901px) { .appbar .who .menu-wrap > .act span { display: none; } .appbar .act.notif span { display: none; } }
+@media (max-width: 1150px) and (min-width: 901px) { .appbar .in { gap: 10px; } }
