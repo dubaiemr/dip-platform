@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>حالة المشروع | شرطة دبي</title>
+<meta name="theme-color" content="#020a06">
+<link rel="icon" href="assets/img/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: "Bukra"; font-weight: 400; src: local("29LT Bukra Regular"), local("29LT Bukra"), local("29LTBukra-Regular"), local("29LTBukra"); }
+@font-face { font-family: "Bukra"; font-weight: 700; src: local("29LT Bukra Bold"), local("29LTBukra-Bold"); }
+@font-face { font-family: "DubaiF"; font-weight: 400; src: local("Dubai"), local("Dubai Regular"), local("Dubai-Regular"); }
+:root {
+  --bg: #020a06; --bg2: #06180f; --card: rgba(255,255,255,.035); --line: rgba(230,201,131,.18);
+  --gold: #c9a24e; --gold-l: #e9cf8e; --gold-d: #8a6a2a; --g: #0e8f5e; --red: #e5484d;
+  --ink: #f3efe4; --muted: rgba(243,239,228,.62);
+  --font: "Bukra", "Tajawal", "Segoe UI", Tahoma, sans-serif; --font2: "DubaiF", "Tajawal", "Segoe UI", sans-serif;
+  --hh: clamp(64px, 9vh, 92px);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); font-family: var(--font); overflow: hidden; -webkit-font-smoothing: antialiased; }
+.ic { width: 1em; height: 1em; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* الخلفية */
+.bgfx { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background: radial-gradient(1200px 700px at 85% -10%, #0b2e1e 0%, transparent 60%), radial-gradient(900px 600px at 0% 110%, #1a1407 0%, transparent 60%), var(--bg); }
+.bgfx .grid { position: absolute; inset: -50%; background-image: linear-gradient(rgba(201,162,78,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(201,162,78,.05) 1px, transparent 1px); background-size: 64px 64px; transform: perspective(900px) rotateX(58deg) translateY(10%); animation: gridmove 28s linear infinite; mask-image: radial-gradient(closest-side, #000 40%, transparent); }
+@keyframes gridmove { to { background-position: 0 640px, 0 0; } }
+.bgfx .orb { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .35; animation: float 18s ease-in-out infinite; }
+.bgfx .o1 { width: 420px; height: 420px; background: #0e8f5e; top: -120px; right: -80px; }
+.bgfx .o2 { width: 360px; height: 360px; background: #8a6a2a; bottom: -140px; left: -60px; animation-delay: -6s; }
+@keyframes float { 50% { transform: translate(40px, 30px) scale(1.08); } }
+.bgfx .sky { position: absolute; bottom: 0; left: 0; width: 100%; opacity: .05; }
+#dust { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+/* الترويسة */
+.hdr { position: fixed; top: 0; left: 0; right: 0; height: var(--hh); z-index: 20; display: flex; align-items: center; justify-content: space-between; padding: 0 clamp(16px, 3vw, 44px); border-bottom: 1px solid var(--line); background: linear-gradient(180deg, rgba(2,10,6,.9), rgba(2,10,6,.4)); backdrop-filter: blur(6px); }
+.hdr .r { display: flex; align-items: center; gap: clamp(10px, 1.4vw, 18px); height: 100%; }
+.hdr img { display: block; }
+.hdr .dp { height: 66%; }
+.hdr .acis { height: 60%; }
+.hdr .sep { width: 1px; height: 46%; background: var(--line); }
+.hdr .dept { display: flex; flex-direction: column; line-height: 1.25; }
+.hdr .dept b { font-size: clamp(12px, 1.25vw, 17px); color: #fff; white-space: nowrap; }
+.hdr .dept small { font-family: Arial, sans-serif; font-size: 9px; letter-spacing: .02em; color: var(--gold-l); white-space: nowrap; direction: ltr; text-align: right; }
+.hdr .gov { height: 56%; }
+
+
+.hdr .acn { height: 58%; width: auto; }
+.wrap { position: fixed; inset: var(--hh) 0 0 0; z-index: 5; overflow-y: auto; padding: clamp(14px, 2.6vh, 30px) clamp(18px, 4vw, 64px) clamp(16px, 3vh, 30px); display: flex; flex-direction: column; }
+.a { opacity: 0; transform: translateY(18px); animation: up .8s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: calc(var(--d, 0) * 110ms + 150ms); }
+@keyframes up { to { opacity: 1; transform: none; } }
+.kicker { display: inline-flex; align-items: center; gap: 10px; color: var(--gold); font-size: clamp(12px, 1.1vw, 15px); margin-bottom: 6px; }
+.kicker::before { content: ""; width: 34px; height: 2px; background: linear-gradient(90deg, transparent, var(--gold)); }
+h1 { margin: 0; font-size: clamp(24px, 2.9vw, 42px); line-height: 1.3; font-weight: 700; }
+h1 em, h3 em { font-style: normal; background: linear-gradient(90deg, var(--gold-l), var(--gold), var(--gold-l)); background-size: 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: shine 6s linear infinite; }
+@keyframes shine { to { background-position: -200% 0; } }
+.pill { display: inline-flex; align-items: center; gap: 8px; margin-inline-start: 14px; vertical-align: middle; padding: 6px 14px; border-radius: 999px; font-size: clamp(12px, 1vw, 14px); background: rgba(14,143,94,.16); border: 1px solid rgba(127,224,181,.45); color: #9ff0cb; font-family: var(--font2); }
+.pill i { width: 9px; height: 9px; border-radius: 50%; background: #3ddc97; box-shadow: 0 0 0 0 rgba(61,220,151,.7); animation: ping 1.8s infinite; }
+@keyframes ping { 70% { box-shadow: 0 0 0 10px rgba(61,220,151,0); } 100% { box-shadow: 0 0 0 0 rgba(61,220,151,0); } }
+.card { background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.015)); border: 1px solid var(--line); border-radius: 20px; padding: clamp(14px, 1.6vw, 22px); position: relative; }
+.card::after { content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; background: linear-gradient(140deg, rgba(233,207,142,.55), transparent 40%, transparent 70%, rgba(233,207,142,.25)); -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; }
+.ibox { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 19px; color: var(--gold-l); background: radial-gradient(circle at 30% 20%, rgba(233,207,142,.25), rgba(201,162,78,.06)); border: 1px solid rgba(233,207,142,.35); flex: none; }
+
+/* المراحل */
+.stages { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); margin: clamp(10px, 1.8vh, 18px) 0 clamp(8px, 1.4vh, 14px); }
+.stages::before { content: ""; position: absolute; top: 15px; right: 10%; left: 10%; height: 3px; border-radius: 3px; background: rgba(233,207,142,.15); }
+.stages .bar { position: absolute; top: 15px; right: 10%; height: 3px; border-radius: 3px; width: 0; background: linear-gradient(270deg, var(--gold), var(--gold-l)); box-shadow: 0 0 12px rgba(233,207,142,.7); animation: fill 1.8s cubic-bezier(.2,.7,.2,1) .6s forwards; }
+@keyframes fill { to { width: 40%; } }
+.stg { text-align: center; position: relative; }
+.stg .dot { width: 33px; height: 33px; margin: 0 auto 8px; border-radius: 50%; display: grid; place-items: center; font-family: Tajawal, sans-serif; font-weight: 700; font-size: 14px; background: var(--bg); border: 2px solid rgba(233,207,142,.35); color: var(--muted); position: relative; z-index: 1; }
+.stg.done .dot { background: var(--gold); border-color: var(--gold); color: #1a1205; }
+.stg.cur .dot { background: var(--gold-l); border-color: var(--gold-l); color: #1a1205; box-shadow: 0 0 0 6px rgba(233,207,142,.18), 0 0 26px rgba(233,207,142,.85); animation: breathe 2.4s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.08); } }
+.stg b { display: block; font-size: clamp(12px, 1.1vw, 15.5px); }
+.stg small { display: block; color: var(--muted); font-family: var(--font2); font-size: clamp(10.5px, .9vw, 12.5px); margin-top: 2px; }
+.stg .here { display: inline-block; margin-top: 6px; font-size: 11.5px; padding: 3px 11px; border-radius: 999px; background: var(--gold); color: #1a1205; font-weight: 700; }
+
+/* العمودان */
+.cols { display: grid; grid-template-columns: .95fr 1.35fr; gap: clamp(14px, 2vw, 26px); flex: 1; min-height: 0; }
+.col h3 { margin: 0 0 12px; font-size: clamp(16px, 1.55vw, 22px); display: flex; align-items: center; gap: 10px; }
+.chk { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chk li { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px; font-family: var(--font2); font-size: clamp(12px, 1.05vw, 14.5px); background: rgba(255,255,255,.035); border: 1px solid rgba(233,207,142,.12); }
+.chk .t { width: 22px; height: 22px; border-radius: 50%; flex: none; display: grid; place-items: center; font-size: 13px; }
+.chk li.ok .t { background: rgba(61,220,151,.18); color: #3ddc97; border: 1px solid rgba(61,220,151,.5); }
+.chk li.ok .t svg { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw .5s ease forwards; animation-delay: inherit; }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+.chk li.wait .t { background: rgba(201,162,78,.12); color: var(--gold-l); border: 1px dashed rgba(233,207,142,.55); }
+.chk li.wait .t svg { animation: rot 4s linear infinite; }
+@keyframes rot { to { transform: rotate(360deg); } }
+.sub2 { margin: 14px 0 8px; color: var(--gold); font-size: 13px; }
+.chk.w { grid-template-columns: 1fr; }
+
+.ai { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ai .card { padding: 12px 14px; cursor: pointer; transition: transform .25s, border-color .25s, background .25s; display: flex; flex-direction: column; gap: 8px; }
+.ai .card:hover { transform: translateY(-3px); }
+.ai .card.open { background: linear-gradient(160deg, rgba(201,162,78,.22), rgba(201,162,78,.04)); }
+.ai .card .hd { display: flex; align-items: center; gap: 10px; }
+.ai .card b { font-size: clamp(13px, 1.15vw, 16px); line-height: 1.45; }
+.ai .card p { margin: 0; color: var(--muted); font-family: var(--font2); font-size: clamp(11.5px, .98vw, 13.5px); line-height: 1.65; }
+.ai .card .ex { display: none; margin-top: 2px; padding: 9px 11px; border-radius: 10px; background: rgba(2,10,6,.55); border: 1px solid rgba(233,207,142,.25); font-family: var(--font2); font-size: clamp(11.5px, .95vw, 13px); line-height: 1.7; color: var(--ink); }
+.ai .card .ex::before { content: "مثال: "; color: var(--gold-l); font-family: var(--font); }
+.ai .card.open .ex { display: block; animation: up .4s ease forwards; }
+.ai .card .more { margin-top: auto; font-size: 11px; color: var(--gold); opacity: .8; }
+.ai .card.open .more { display: none; }
+.agent { margin-top: 12px; display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-radius: 14px; background: rgba(14,143,94,.12); border: 1px solid rgba(14,143,94,.42); font-family: var(--font2); font-size: clamp(12px, 1.05vw, 14.5px); line-height: 1.7; }
+.agent .ibox { color: #7fe0b5; border-color: rgba(127,224,181,.4); background: rgba(14,143,94,.15); }
+.agent b { color: #7fe0b5; font-family: var(--font); }
+.aitag { font-size: 11.5px; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--gold); color: var(--gold-l); font-family: var(--font2); }
+
+@media (max-width: 1000px) {
+  :root { --hh: 62px; }
+  .hdr .acn { height: 42%; } .hdr .dp { height: 56%; } .hdr .gov { height: 46%; }
+  .cols { grid-template-columns: 1fr; }
+  .ai { grid-template-columns: 1fr 1fr; }
+  .stages { grid-template-columns: repeat(5, 1fr); }
+  .stg small { display: none; }
+  .pill { margin: 8px 0 0; }
+}
+@media (max-width: 560px) { .ai, .chk { grid-template-columns: 1fr; } .stg b { font-size: 10.5px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; } .a { opacity: 1; transform: none; } .stages .bar { width: 40%; } }
+</style>
+</head>
+<body>
+
+<div class="bgfx" aria-hidden="true"><div class="grid"></div><div class="orb o1"></div><div class="orb o2"></div><canvas id="dust"></canvas><img class="sky" src="assets/img/skyline-white.png" alt=""></div>
+<header class="hdr">
+  <div class="r"><img class="dp" src="assets/img/logo-dubai-police-white.png" alt="شرطة دبي"><span class="sep"></span><img class="acn" src="assets/img/logo-acis-name-white.png" alt="إدارة أمن الهيئات والمنشآت الحيوية"></div>
+  <img class="gov" src="assets/img/logo-gov-dubai-white.png" alt="حكومة دبي">
+</header>
+<main class="wrap">
+  <div class="kicker a">حالة المشروع — المنصة الإلكترونية لخدمات الهيئات الدبلوماسية</div>
+  <h1 class="a" style="--d:1">النموذج التجريبي <em>جاهز ويعمل</em><span class="pill"><i></i>يعمل الآن تجريبياً ببيانات افتراضية</span></h1>
+  <div class="stages a" style="--d:2">
+    <span class="bar"></span>
+    <div class="stg done"><div class="dot">1</div><b>الدراسة</b><small>حصر الخدمات</small></div>
+    <div class="stg done"><div class="dot">2</div><b>التصميم والبناء</b><small>المنصتان</small></div>
+    <div class="stg cur"><div class="dot">3</div><b>التشغيل التجريبي</b><span class="here">نحن هنا</span></div>
+    <div class="stg"><div class="dot">4</div><b>الاعتماد والربط</b><small>البحث والتطوير · الخارجية</small></div>
+    <div class="stg"><div class="dot">5</div><b>التعميم والذكاء الاصطناعي</b><small>على سيرفرات الشرطة</small></div>
+  </div>
+  <div class="cols">
+    <div class="col card a" style="--d:4">
+      <h3><span class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12l5 5L20 7"/></svg></span>ما تم إنجازه</h3>
+      <ul class="chk"><li class="ok a" style="--d:6"><span class="t"><svg class="ic" viewBox="0 0 24 24" style="stroke-width:3"><path d="M5 12l5 5L20 7"/></svg></span>بوابة الهيئات الدبلوماسية</li><li class="ok a" style="--d:7"><span class="t"><svg class="ic" viewBox="0 0 24 24" style="stroke-width:3"><path d="M5 12l5 5L20 7"/></svg></span>لوحة استلام الطلبات</li><li class="ok a" style="--d:8"><span class="t"><svg class="ic" viewBox="0 0 24 24" style="stroke-width:3"><path d="M5 12l5 5L20 7"/></svg></span>البلاغ الطارئ المباشر</li><li class="ok a" style="--d:9"><span class="t"><svg class="ic" viewBox="0 0 24 24" style="stroke-width:3"><path d="M5 12l5 5L20 7"/></svg></span>الخارطة التفاعلية (85 قنصلية)</li><li class="ok a" style="--d:10"><span class="t"><svg class="ic" viewBox="0 0 24 24" style="stroke-width:3"><path d="M5 12l5 5L20 7"/></svg></span>تقارير التنفيذ والتقارير الإحصائية</li><li class="ok a" style="--d:11"><span class="t"><svg class="ic" viewBox="0 0 24 24" style="stroke-width:3"><path d="M5 12l5 5L20 7"/></svg></span>«طمّنا» والتعاميم الأمنية بعشر لغات</li></ul>
+      <div class="sub2 a" style="--d:11">المتبقي قبل التشغيل الفعلي</div>
+      <ul class="chk w"><li class="wait a" style="--d:12"><span class="t"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/></svg></span>الاعتماد ضمن مسار الذكاء الاصطناعي — منصة مشاريع البحث والتطوير</li><li class="wait a" style="--d:13"><span class="t"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/></svg></span>الربط مع منصة وزارة الخارجية</li><li class="wait a" style="--d:14"><span class="t"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2 2"/></svg></span>الاستضافة على سيرفرات شرطة دبي</li></ul>
+    </div>
+    <div class="col">
+      <h3 class="a" style="--d:5"><span class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2l2.4 4.9L20 8l-4 3.9.9 5.6L12 15l-4.9 2.5.9-5.6L4 8l5.6-1.1z"/></svg></span>المرحلة القادمة: <em>الذكاء الاصطناعي</em><span class="aitag">بعد الرفع على سيرفر الشرطة</span></h3>
+      <div class="ai"><div class="card a" style="--d:8" tabindex="0"><div class="hd"><div class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h6M18 14l3 3-3 3"/></svg></div><b>التوجيه الذكي للطلبات</b></div><p>يقرأ الطلب ويقترح الخدمة والجهة المختصة والأولوية.</p><div class="ex">طلب «حفل استقبال في فندق» يُوجَّه تلقائياً إلى لجنة تأمين الفعاليات بأولوية عالية.</div><span class="more">اضغط لعرض مثال</span></div><div class="card a" style="--d:9" tabindex="0"><div class="hd"><div class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg></div><b>التدقيق قبل الإرسال</b></div><p>ينبّه البعثة إلى أي معلومة أو مرفق ناقص قبل الإرسال.</p><div class="ex">«عدد الضيوف غير مذكور، وكشف الأسماء غير مرفق» — فيُستكمل الطلب من المرة الأولى.</div><span class="more">اضغط لعرض مثال</span></div><div class="card a" style="--d:10" tabindex="0"><div class="hd"><div class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></div><b>تحليل البلاغ الطارئ</b></div><p>يقرأ الصورة والوصف ويقدّر درجة الخطورة لغرفة العمليات.</p><div class="ex">صورة لجسم مشبوه أمام القنصلية ← «خطورة عالية» مع اقتراح أقرب دورية.</div><span class="more">اضغط لعرض مثال</span></div><div class="card a" style="--d:11" tabindex="0"><div class="hd"><div class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg></div><b>التنبؤ بالضغط</b></div><p>يتوقع ذروة الطلبات ويكشف المواقع التي تتكرر فيها البلاغات.</p><div class="ex">«توقع ارتفاع طلبات تأمين الفعاليات بنسبة كبيرة في أسبوع الأعياد الوطنية للبعثات».</div><span class="more">اضغط لعرض مثال</span></div><div class="card a" style="--d:12" tabindex="0"><div class="hd"><div class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M14 3H6v18h12V7zM14 3v4h4M9 13h6M9 17h6"/></svg></div><b>ملخصات وتقارير تلقائية</b></div><p>ملخص يومي وأسبوعي للقيادة، وصياغة الردود بالعربية والإنجليزية.</p><div class="ex">«تم استلام 18 طلباً، أُنجز 15 ضمن المهلة، وبلاغ طارئ واحد أُغلق خلال 12 دقيقة».</div><span class="more">اضغط لعرض مثال</span></div><div class="card a" style="--d:13" tabindex="0"><div class="hd"><div class="ibox"><svg class="ic" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><b>اسأل المنصة</b></div><p>يسأل المسؤول بلغته ويحصل على الإجابة من البيانات مباشرة.</p><div class="ex">«كم طلباً تأخر هذا الشهر، ولأي جهة؟» ← إجابة فورية مع رسم بياني.</div><span class="more">اضغط لعرض مثال</span></div></div>
+      <div class="agent a" style="--d:15"><span class="ibox"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span><div><b>عبر وكيل الذكاء الاصطناعي المعتمد في شرطة دبي:</b> تعمل هذه الخصائص من داخل الأنظمة الداخلية، فلا تخرج البيانات خارج شرطة دبي.</div></div>
+    </div>
+  </div>
+</main>
+<script>
+document.querySelectorAll(".ai .card").forEach(c => { const t = () => c.classList.toggle("open"); c.onclick = t; c.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); t(); } }; });
+document.addEventListener("keydown", e => { if (e.key === "f" || e.key === "F") { const d = document.documentElement; if (!document.fullscreenElement) (d.requestFullscreen || d.webkitRequestFullscreen || (() => {})).call(d); else document.exitFullscreen(); } });
+(function () {
+  const c = document.getElementById("dust"), x = c.getContext("2d"); let W, H, P = [];
+  function size() { W = c.width = innerWidth * devicePixelRatio; H = c.height = innerHeight * devicePixelRatio; P = Array.from({ length: Math.round(innerWidth / 18) }, () => ({ x: Math.random() * W, y: Math.random() * H, r: (Math.random() * 1.6 + .4) * devicePixelRatio, v: (Math.random() * .25 + .05) * devicePixelRatio, a: Math.random() * .5 + .15 })); }
+  size(); addEventListener("resize", size);
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) (function loop() { x.clearRect(0, 0, W, H); for (const p of P) { p.y -= p.v; if (p.y < -5) { p.y = H + 5; p.x = Math.random() * W; } x.beginPath(); x.arc(p.x, p.y, p.r, 0, 7); x.fillStyle = "rgba(233,207,142," + p.a + ")"; x.fill(); } requestAnimationFrame(loop); })();
+})();
+</script>
+</body></html>
